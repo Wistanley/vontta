@@ -42,17 +42,35 @@ const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSet
   // Handle fallback if image 404s (e.g. fresh install)
   const [logoError, setLogoError] = useState(false);
 
+  // Sign Up State
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setIsLoading(true);
 
     try {
-      const result = await backend.authenticate(email, password);
-      if (result.user) {
-        onLogin(result.user);
+      if (isSignUp) {
+        const result = await backend.signUp(email, password, name);
+        if (result.error) {
+          setError(result.error);
+        } else if (result.user) {
+          onLogin(result.user);
+        } else {
+          setSuccessMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar (se necessário) ou faça login.');
+          setIsSignUp(false);
+        }
       } else {
-        setError(result.error || 'Erro ao autenticar');
+        const result = await backend.authenticate(email, password);
+        if (result.user) {
+          onLogin(result.user);
+        } else {
+          setError(result.error || 'Erro ao autenticar');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro inesperado.');
@@ -81,10 +99,29 @@ const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSet
             </div>
           )}
           <h1 className="text-3xl font-bold text-white tracking-tight">{(settings.logoUrl && !logoError) ? '' : 'Vontta'}</h1>
-          <p className="text-slate-400 mt-2">Acesse sua conta</p>
+          <p className="text-slate-400 mt-2">{isSignUp ? 'Crie sua conta' : 'Acesse sua conta'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {isSignUp && (
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1.5 ml-1">Nome Completo</label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                {/* Reusing Mail icon for simplicity or change to User icon if available */}
+                <input
+                  type="text"
+                  required={isSignUp}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
+                  placeholder="Seu Nome"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1.5 ml-1">E-mail</label>
             <div className="relative group">
@@ -111,6 +148,7 @@ const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSet
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
                 placeholder="••••••••"
+                minLength={6}
               />
             </div>
           </div>
@@ -127,6 +165,17 @@ const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSet
                 {error}
               </motion.div>
             )}
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-emerald-400 text-sm bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg flex items-center gap-2"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {successMessage}
+              </motion.div>
+            )}
           </AnimatePresence>
 
           <button
@@ -138,11 +187,21 @@ const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSet
               <Loader2 className="animate-spin" size={20} />
             ) : (
               <>
-                Entrar
+                {isSignUp ? 'Criar Conta' : 'Entrar'}
                 <ArrowRight size={18} />
               </>
             )}
           </button>
+
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(!isSignUp); setError(null); setSuccessMessage(null); }}
+              className="text-sm text-slate-400 hover:text-white transition-colors underline decoration-slate-600 hover:decoration-white"
+            >
+              {isSignUp ? 'Já tem uma conta? Faça login' : 'Não tem conta? Cadastre-se'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

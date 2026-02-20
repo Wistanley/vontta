@@ -70,6 +70,41 @@ class SupabaseService {
     return { user: null, error: 'Perfil de usuário não encontrado.' };
   }
 
+  async signUp(email: string, password: string, name: string): Promise<{ user: User | null, error: string | null }> {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          avatar: `https://ui-avatars.com/api/?name=${name}&background=random`
+        }
+      }
+    });
+
+    if (error) return { user: null, error: error.message };
+
+    // Auto-login logic if signUp returns a session immediately (depends on email config)
+    if (data.user && data.session) {
+      // Wait a bit for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile) {
+        this.currentUser = this.mapProfileToUser(profile);
+        await this.initializeData();
+        return { user: this.currentUser, error: null };
+      }
+    }
+
+    return { user: null, error: null }; // Success but maybe email confirmation needed
+  }
+
   async checkSession(): Promise<User | null> {
     const { data } = await supabase.auth.getSession();
     if (data.session?.user) {
