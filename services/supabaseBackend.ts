@@ -569,7 +569,9 @@ class SupabaseService {
     if (updates.dueDate) dbUpdates.due_date = updates.dueDate;
     if (updates.status) dbUpdates.status = updates.status;
     if (updates.priority) dbUpdates.priority = updates.priority;
+    if (updates.priority) dbUpdates.priority = updates.priority;
     if (updates.notes) dbUpdates.notes = updates.notes;
+    if (updates.isRecurring !== undefined) dbUpdates.is_recurring = updates.isRecurring;
 
     const { error } = await supabase.from('tasks').update(dbUpdates).eq('id', id);
     if (error) throw new Error(`Erro ao atualizar tarefa: ${error.message}`);

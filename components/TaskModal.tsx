@@ -27,12 +27,12 @@ const modalVariants = {
 
 // Helper to get Today in SP Timezone as YYYY-MM-DD
 const getTodayInSP = () => {
-    const now = new Date();
-    const brazil = new Date(now.toLocaleString("en-US", {timeZone: "America/Sao_Paulo"}));
-    const y = brazil.getFullYear();
-    const m = String(brazil.getMonth() + 1).padStart(2, '0');
-    const d = String(brazil.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  const now = new Date();
+  const brazil = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const y = brazil.getFullYear();
+  const m = String(brazil.getMonth() + 1).padStart(2, '0');
+  const d = String(brazil.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 };
 
 export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initialData, projects, sectors, users }) => {
@@ -88,16 +88,16 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
   const handleProjectChange = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     let sectorName = '';
-    
+
     if (project) {
-        const sector = sectors.find(s => s.id === project.sectorId);
-        if (sector) sectorName = sector.name;
+      const sector = sectors.find(s => s.id === project.sectorId);
+      if (sector) sectorName = sector.name;
     }
 
-    setFormData({ 
-        ...formData, 
-        projectId: projectId, 
-        sector: sectorName 
+    setFormData({
+      ...formData,
+      projectId: projectId,
+      sector: sectorName
     });
   };
 
@@ -138,10 +138,10 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
       >
         <div className="flex justify-between items-center p-6 border-b border-slate-700 bg-navy-900/50">
           <div className="flex items-center gap-2">
-             {initialData && !taskToEdit && <Copy size={20} className="text-primary" />}
-             <h2 className="text-xl font-semibold text-white">
-               {getTitle()}
-             </h2>
+            {initialData && !taskToEdit && <Copy size={20} className="text-primary" />}
+            <h2 className="text-xl font-semibold text-white">
+              {getTitle()}
+            </h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
             <X size={24} />
@@ -161,11 +161,11 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
               >
                 <option value="">Selecione um projeto...</option>
                 {projects.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
-             <div>
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Colaborador</label>
               <select
                 disabled={!canEdit || backend.currentUser?.role !== 'admin'}
@@ -179,7 +179,7 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-             <div>
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Atividade Planejada</label>
               <input
                 required
@@ -193,7 +193,7 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div>
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Status</label>
               <select
                 disabled={!canEdit}
@@ -204,10 +204,10 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
                 {Object.values(Status).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-             <div>
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Prioridade</label>
               <select
-                 disabled={!canEdit}
+                disabled={!canEdit}
                 value={formData.priority}
                 onChange={e => setFormData({ ...formData, priority: e.target.value as Priority })}
                 className="w-full bg-navy-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-primary outline-none"
@@ -217,8 +217,8 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
             </div>
           </div>
 
-           <div className="grid grid-cols-3 gap-4">
-             <div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Data Entrega</label>
               <input
                 type="date"
@@ -228,7 +228,7 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
                 className="w-full bg-navy-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-primary outline-none"
               />
             </div>
-             <div>
+            <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">Horas (HH:mm)</label>
               <TimeInput
                 disabled={!canEdit}
@@ -245,8 +245,20 @@ export const TaskModal: React.FC<Props> = ({ isOpen, onClose, taskToEdit, initia
                 className="w-full bg-navy-900/50 border border-slate-800 rounded-lg p-2.5 text-slate-400 cursor-not-allowed"
               />
             </div>
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-white transition-colors">
+                <input
+                  type="checkbox"
+                  disabled={!canEdit}
+                  checked={formData.isRecurring || false}
+                  onChange={e => setFormData({ ...formData, isRecurring: e.target.checked })}
+                  className="w-5 h-5 rounded border-slate-700 bg-navy-900 text-primary focus:ring-primary"
+                />
+                <span className="text-sm font-medium">Repetir toda semana</span>
+              </label>
+            </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">Atividade Entregue (Realizado)</label>
             <textarea

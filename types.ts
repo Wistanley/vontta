@@ -45,6 +45,7 @@ export interface Task {
   dueDate: string;
   hoursDedicated: string; // Format HH:mm
   notes: string;
+  isRecurring?: boolean;
   updatedAt: string;
 }
 
