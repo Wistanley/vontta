@@ -28,7 +28,9 @@ import {
   Settings,
   Kanban,
   MessageSquare,
-  History // NEW ICON
+  History, // NEW ICON
+  Menu, // Mobile Menu Icon
+  X // Close Icon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -227,6 +229,9 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatChannels, setChatChannels] = useState<ChatChannel[]>([]);
   const [history, setHistory] = useState<WeeklyHistory[]>([]); // New State
+
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // UI State
   const [currentView, setCurrentView] = useState<'dashboard' | 'activities' | 'planning' | 'board' | 'chat' | 'settings' | 'profile' | 'history'>('dashboard');
@@ -532,16 +537,25 @@ export default function App() {
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Top Header */}
         <header className="h-16 border-b border-slate-800 bg-navy-900/80 backdrop-blur-md flex items-center justify-between px-4 md:px-6 z-20">
-          <h1 className="text-lg font-semibold text-white">
-            {currentView === 'dashboard' && 'Visão Geral (Analytics)'}
-            {currentView === 'activities' && 'Lista de Atividades'}
-            {currentView === 'planning' && 'Agenda Semanal'}
-            {currentView === 'board' && 'Quadro de Tarefas'}
-            {currentView === 'chat' && 'Chat Colaborativo'}
-            {currentView === 'settings' && 'Gerenciamento'}
-            {currentView === 'profile' && 'Perfil do Usuário'}
-            {currentView === 'history' && 'Histórico Semanal'}
-          </h1>
+          <div className="flex items-center gap-3">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            >
+              <Menu size={24} />
+            </button>
+            <h1 className="text-lg font-semibold text-white">
+              {currentView === 'dashboard' && 'Visão Geral (Analytics)'}
+              {currentView === 'activities' && 'Lista de Atividades'}
+              {currentView === 'planning' && 'Agenda Semanal'}
+              {currentView === 'board' && 'Quadro de Tarefas'}
+              {currentView === 'chat' && 'Chat Colaborativo'}
+              {currentView === 'settings' && 'Gerenciamento'}
+              {currentView === 'profile' && 'Perfil do Usuário'}
+              {currentView === 'history' && 'Histórico Semanal'}
+            </h1>
+          </div>
           <div className="flex items-center gap-3">
             {/* Common Actions for Dashboard/Activities */}
             {(currentView === 'dashboard' || currentView === 'activities') && (
@@ -645,6 +659,136 @@ export default function App() {
 
         </div>
       </main>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-72 bg-navy-900 border-r border-slate-800 z-50 md:hidden flex flex-col shadow-2xl"
+            >
+              <div className="p-6 flex items-center justify-between border-b border-slate-800">
+                {/* Dynamic Logo in Mobile Menu */}
+                <div className="flex items-center gap-3">
+                  {settings.logoUrl && !logoError ? (
+                    <img
+                      src={settings.logoUrl}
+                      alt="Logo"
+                      className="h-8 w-auto max-w-[120px] object-contain"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                      <LayoutDashboard className="text-white" size={18} />
+                    </div>
+                  )}
+                  {(!settings.logoUrl || logoError) && <span className="font-bold text-lg tracking-tight text-white">Vontta</span>}
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="p-4 border-b border-slate-800 bg-navy-800/30">
+                <div className="flex items-center gap-3 mb-3">
+                  <img src={currentUser.avatar} className="w-10 h-10 rounded-full border border-slate-600 object-cover" alt="me" />
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-medium text-white truncate">{currentUser.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <button
+                  onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'dashboard' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <LayoutDashboard size={20} />
+                  <span>Dashboard</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('activities'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'activities' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <ListTodo size={20} />
+                  <span>Atividades</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('planning'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'planning' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <CalendarDays size={20} />
+                  <span>Planejamento</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('board'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'board' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Kanban size={20} />
+                  <span>Quadro</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('chat'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'chat' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <MessageSquare size={20} />
+                  <span>Chat IA</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('history'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'history' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <History size={20} />
+                  <span>Histórico</span>
+                </button>
+
+                <div className="my-4 border-t border-slate-800"></div>
+
+                <button
+                  onClick={() => { setCurrentView('profile'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'profile' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <Settings size={20} />
+                  <span>Perfil</span>
+                </button>
+
+                <button
+                  onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'settings' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <FolderOpen size={20} />
+                  <span>Cadastros</span>
+                </button>
+
+                <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors mt-auto">
+                  <LogOut size={20} />
+                  <span>Sair do sistema</span>
+                </button>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <TaskModal
         isOpen={isModalOpen}
