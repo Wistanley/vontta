@@ -1,6 +1,6 @@
 
 import { supabase } from '../lib/supabaseClient';
-import { Task, User, ActivityLog, Status, Priority, Sector, Project, SystemSettings, BoardTask, BoardStatus, Subtask, ChatMessage, ChatState, ChatChannel, WeeklyHistory } from '../types';
+import { Task, User, ActivityLog, Status, Priority, Sector, Project, SystemSettings, BoardTask, BoardStatus, Subtask, ChatMessage, ChatState, ChatChannel, WeeklyHistory, FinancialCost, FinancialIncome } from '../types';
 import { GoogleGenAI } from "@google/genai";
 
 class SupabaseService {
@@ -17,6 +17,8 @@ class SupabaseService {
   // New Cache for Board Tasks
   private boardTasks: BoardTask[] = [];
   private weeklyHistory: WeeklyHistory[] = [];
+  private financialCosts: FinancialCost[] = [];
+  private financialIncome: FinancialIncome[] = [];
 
   private listeners: Array<() => void> = [];
 
@@ -248,7 +250,9 @@ class SupabaseService {
       this.fetchChatMessages(),
       this.fetchLogs(),
       this.fetchWeeklyHistory(),
-      this.fetchSystemSettings()
+      this.fetchSystemSettings(),
+      this.fetchFinancialCosts(),
+      this.fetchFinancialIncome()
     ]);
 
     this.initialized = true;
@@ -265,6 +269,8 @@ class SupabaseService {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_channels' }, () => this.fetchChatChannels().then(() => this.notify()))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => this.fetchChatMessages().then(() => this.notify()))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'weekly_history' }, () => this.fetchWeeklyHistory().then(() => this.notify()))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'financial_costs' }, () => this.fetchFinancialCosts().then(() => this.notify()))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'financial_income' }, () => this.fetchFinancialIncome().then(() => this.notify()))
       .subscribe();
   }
 
@@ -391,6 +397,18 @@ class SupabaseService {
     }
   }
 
+  private async fetchFinancialCosts() {
+    if (!this.currentUser) return;
+    const { data } = await supabase.from('financial_costs').select('*').order('due_day', { ascending: true });
+    if (data) this.financialCosts = data.map(this.mapDbToFinancialCost.bind(this));
+  }
+
+  private async fetchFinancialIncome() {
+    if (!this.currentUser) return;
+    const { data } = await supabase.from('financial_income').select('*').order('due_day', { ascending: true });
+    if (data) this.financialIncome = data.map(this.mapDbToFinancialIncome.bind(this));
+  }
+
 
   // --- Getters ---
   getTasks() { return this.tasks; }
@@ -408,6 +426,8 @@ class SupabaseService {
     return this.chatMessages.filter(m => m.channelId === channelId);
   }
   getChatChannels() { return this.chatChannels; }
+  getFinancialCosts() { return this.financialCosts; }
+  getFinancialIncome() { return this.financialIncome; }
 
 
   // --- Chat Actions ---
@@ -696,6 +716,110 @@ class SupabaseService {
     this.notify();
   }
 
+  // --- FINANCIAL ACTIONS ---
+
+  async createFinancialCost(cost: Omit<FinancialCost, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) {
+    if (!this.currentUser) return;
+    const dbCost = {
+      user_id: this.currentUser.id,
+      name: cost.name,
+      value: cost.value,
+      total_installments: cost.totalInstallments,
+      paid_installments: cost.paidInstallments,
+      due_day: cost.dueDay,
+      is_fixed: cost.isFixed,
+      active: cost.active,
+      category: cost.category,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase.from('financial_costs').insert(dbCost);
+    if (error) throw new Error(`Erro ao criar custo: ${error.message}`);
+    await this.fetchFinancialCosts();
+    this.notify();
+    await this.logAction('CREATE', `Novo custo: ${cost.name}`);
+  }
+
+  async updateFinancialCost(id: string, updates: Partial<FinancialCost>) {
+    const dbUpdates: any = { updated_at: new Date().toISOString() };
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.value !== undefined) dbUpdates.value = updates.value;
+    if (updates.totalInstallments !== undefined) dbUpdates.total_installments = updates.totalInstallments;
+    if (updates.paidInstallments !== undefined) dbUpdates.paid_installments = updates.paidInstallments;
+    if (updates.dueDay !== undefined) dbUpdates.due_day = updates.dueDay;
+    if (updates.isFixed !== undefined) dbUpdates.is_fixed = updates.isFixed;
+    if (updates.active !== undefined) dbUpdates.active = updates.active;
+    if (updates.category) dbUpdates.category = updates.category;
+
+    const { error } = await supabase.from('financial_costs').update(dbUpdates).eq('id', id);
+    if (error) throw new Error(`Erro ao atualizar custo: ${error.message}`);
+    await this.fetchFinancialCosts();
+    this.notify();
+  }
+
+  async deleteFinancialCost(id: string) {
+    const { error } = await supabase.from('financial_costs').delete().eq('id', id);
+    if (error) throw new Error(`Erro ao excluir custo: ${error.message}`);
+    await this.fetchFinancialCosts();
+    this.notify();
+    await this.logAction('DELETE', 'Custo removido');
+  }
+
+  async createFinancialIncome(income: Omit<FinancialIncome, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) {
+    if (!this.currentUser) return;
+    const dbIncome = {
+      user_id: this.currentUser.id,
+      name: income.name,
+      value: income.value,
+      is_recurring: income.isRecurring,
+      due_day: income.dueDay,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabase.from('financial_income').insert(dbIncome);
+    if (error) throw new Error(`Erro ao criar rendimento: ${error.message}`);
+    await this.fetchFinancialIncome();
+    this.notify();
+    await this.logAction('CREATE', `Novo rendimento: ${income.name}`);
+  }
+
+  async updateFinancialIncome(id: string, updates: Partial<FinancialIncome>) {
+    const dbUpdates: any = { updated_at: new Date().toISOString() };
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.value !== undefined) dbUpdates.value = updates.value;
+    if (updates.isRecurring !== undefined) dbUpdates.is_recurring = updates.isRecurring;
+    if (updates.dueDay !== undefined) dbUpdates.due_day = updates.dueDay;
+
+    const { error } = await supabase.from('financial_income').update(dbUpdates).eq('id', id);
+    if (error) throw new Error(`Erro ao atualizar rendimento: ${error.message}`);
+    await this.fetchFinancialIncome();
+    this.notify();
+  }
+
+  async deleteFinancialIncome(id: string) {
+    const { error } = await supabase.from('financial_income').delete().eq('id', id);
+    if (error) throw new Error(`Erro ao excluir rendimento: ${error.message}`);
+    await this.fetchFinancialIncome();
+    this.notify();
+    await this.logAction('DELETE', 'Rendimento removido');
+  }
+
+  async turnMonth() {
+    if (!this.currentUser) return;
+    const activeCosts = this.financialCosts.filter(c => c.active);
+    for (const cost of activeCosts) {
+      if (!cost.isFixed && cost.totalInstallments) {
+        const nextPaid = cost.paidInstallments + 1;
+        const updates: any = { paid_installments: nextPaid };
+        if (nextPaid >= cost.totalInstallments) {
+          updates.active = false;
+        }
+        await supabase.from('financial_costs').update(updates).eq('id', cost.id);
+      }
+    }
+    await this.fetchFinancialCosts();
+    this.notify();
+    await this.logAction('UPDATE', 'Virada de mês financeira realizada');
+  }
+
   // --- Helpers ---
   private async logAction(action: string, description: string) {
     if (!this.currentUser) return;
@@ -759,6 +883,36 @@ class SupabaseService {
       subtasks: db.subtasks || [],    // Ensure array
       updatedAt: db.updated_at
     }
+  }
+
+  private mapDbToFinancialCost(db: any): FinancialCost {
+    return {
+      id: db.id,
+      name: db.name,
+      value: Number(db.value),
+      totalInstallments: db.total_installments,
+      paidInstallments: db.paid_installments,
+      dueDay: db.due_day,
+      isFixed: db.is_fixed,
+      active: db.active,
+      userId: db.user_id,
+      category: db.category,
+      createdAt: db.created_at,
+      updatedAt: db.updated_at
+    };
+  }
+
+  private mapDbToFinancialIncome(db: any): FinancialIncome {
+    return {
+      id: db.id,
+      name: db.name,
+      value: Number(db.value),
+      isRecurring: db.is_recurring,
+      dueDay: db.due_day,
+      userId: db.user_id,
+      createdAt: db.created_at,
+      updatedAt: db.updated_at
+    };
   }
 
   private mapProfileToUser(p: any): User {

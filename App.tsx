@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 // SWITCH TO REAL BACKEND
 import { backend } from './services/supabaseBackend';
-import { Task, User, ActivityLog, Status, Sector, Project, SystemSettings, BoardTask, ChatMessage, ChatChannel, WeeklyHistory } from './types';
+import { Task, User, ActivityLog, Status, Sector, Project, SystemSettings, BoardTask, ChatMessage, ChatChannel, WeeklyHistory, FinancialCost, FinancialIncome } from './types';
 import { ActivityLogWidget } from './components/ActivityLogWidget';
 import { TaskModal } from './components/TaskModal';
 import { SettingsView } from './components/SettingsView';
@@ -13,6 +13,7 @@ import { ProfileView } from './components/ProfileView';
 import { BoardView } from './components/BoardView';
 import { ChatView } from './components/ChatView';
 import { HistoryView } from './components/HistoryView'; // NEW IMPORT
+import { FinancialView } from './components/FinancialView'; // NEW IMPORT
 import {
   LayoutDashboard,
   CalendarDays,
@@ -29,6 +30,7 @@ import {
   Kanban,
   MessageSquare,
   History, // NEW ICON
+  DollarSign, // NEW ICON
   Menu, // Mobile Menu Icon
   X // Close Icon
 } from 'lucide-react';
@@ -229,12 +231,14 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatChannels, setChatChannels] = useState<ChatChannel[]>([]);
   const [history, setHistory] = useState<WeeklyHistory[]>([]); // New State
+  const [financialCosts, setFinancialCosts] = useState<FinancialCost[]>([]);
+  const [financialIncome, setFinancialIncome] = useState<FinancialIncome[]>([]);
 
   // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // UI State
-  const [currentView, setCurrentView] = useState<'dashboard' | 'activities' | 'planning' | 'board' | 'chat' | 'settings' | 'profile' | 'history'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'activities' | 'planning' | 'board' | 'chat' | 'settings' | 'profile' | 'history' | 'financial'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [duplicatingTask, setDuplicatingTask] = useState<Task | null>(null);
@@ -265,6 +269,8 @@ export default function App() {
       setChatMessages(backend.getChatMessages());
       setChatChannels(backend.getChatChannels());
       setHistory(backend.getWeeklyHistory()); // Fetch History
+      setFinancialCosts(backend.getFinancialCosts());
+      setFinancialIncome(backend.getFinancialIncome());
       setLogoError(false);
 
       // Sync currentUser state with backend if profile updated
@@ -506,6 +512,14 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setCurrentView('financial')}
+            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'financial' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <DollarSign size={18} />
+            <span>Financeiro</span>
+          </button>
+
+          <button
             onClick={() => setCurrentView('settings')}
             className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'settings' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
@@ -630,6 +644,15 @@ export default function App() {
                 channels={chatChannels}
                 currentUser={currentUser}
                 users={users}
+              />
+            )}
+
+            {/* VIEW: FINANCIAL (NEW) */}
+            {currentView === 'financial' && (
+              <FinancialView
+                costs={financialCosts}
+                income={financialIncome}
+                currentUser={currentUser}
               />
             )}
 
@@ -762,6 +785,14 @@ export default function App() {
                   <span>Histórico</span>
                 </button>
 
+                <button
+                  onClick={() => { setCurrentView('financial'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'financial' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <DollarSign size={20} />
+                  <span>Financeiro</span>
+                </button>
+
                 <div className="my-4 border-t border-slate-800"></div>
 
                 <button
@@ -799,6 +830,6 @@ export default function App() {
         sectors={sectors}
         users={users}
       />
-    </div>
+    </div >
   );
 }

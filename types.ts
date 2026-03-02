@@ -132,3 +132,29 @@ export interface WeeklyHistory {
   boardTasks: BoardTask[]; // Snapshot of board tasks
   createdAt: string;
 }
+
+export interface FinancialCost {
+  id: string;
+  name: string;
+  value: number;
+  totalInstallments: number | null; // null for fixed
+  paidInstallments: number;
+  dueDay: number;
+  isFixed: boolean;
+  active: boolean;
+  userId: string;
+  category?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinancialIncome {
+  id: string;
+  name: string;
+  value: number;
+  isRecurring: boolean;
+  dueDay: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
