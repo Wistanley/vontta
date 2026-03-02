@@ -649,10 +649,10 @@ export default function App() {
 
             {/* VIEW: FINANCIAL (NEW) */}
             {currentView === 'financial' && (
-              <FinancialView 
-                costs={financialCosts} 
-                income={financialIncome} 
-                currentUser={currentUser} 
+              <FinancialView
+                costs={financialCosts}
+                income={financialIncome}
+                currentUser={currentUser}
               />
             )}
 
@@ -777,6 +777,11 @@ export default function App() {
                   <span>Chat IA</span>
                 </button>
 
+                <button
+                  onClick={() => { setCurrentView('history'); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'history' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <History size={20} />
                   <span>Histórico</span>
                 </button>
 
