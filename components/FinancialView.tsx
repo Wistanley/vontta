@@ -138,46 +138,46 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
     };
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-hidden">
+        <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-hidden">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-navy-800/50 p-6 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5"
+                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5"
                 >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
                             <TrendingUp size={20} />
                         </div>
-                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Rendimentos</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Rendimentos</span>
                     </div>
-                    <p className="text-2xl font-bold text-white tracking-tight">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-navy-800/50 p-6 rounded-2xl border border-rose-500/20 shadow-lg shadow-rose-500/5"
+                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-rose-500/20 shadow-lg shadow-rose-500/5"
                 >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
                             <TrendingDown size={20} />
                         </div>
-                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Custos Ativos</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Custos Ativos</span>
                     </div>
-                    <p className="text-2xl font-bold text-white tracking-tight">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    className="bg-navy-800/50 p-6 rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-500/5"
+                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-500/5"
                 >
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
                             <DollarSign size={20} />
                         </div>
-                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Mensal</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Mensal</span>
                     </div>
-                    <p className={`text-2xl font-bold tracking-tight ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <p className={`text-xl sm:text-2xl font-bold tracking-tight truncate ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         R$ {totals.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                 </motion.div>
@@ -186,34 +186,34 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
             {/* Main Content Area */}
             <div className="flex-1 bg-navy-800/80 backdrop-blur-xl rounded-2xl border border-white/5 shadow-2xl overflow-hidden flex flex-col">
                 {/* Header Tabs */}
-                <div className="p-4 border-b border-slate-700 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex bg-navy-900 p-1 rounded-xl border border-slate-700">
+                <div className="p-3 sm:p-4 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex bg-navy-900 p-1 rounded-xl border border-slate-700 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab('costs')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'costs' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'costs' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                         >
                             Custos
                         </button>
                         <button
                             onClick={() => setActiveTab('income')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'income' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'income' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                         >
                             Rendimentos
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                         <button
                             onClick={handleTurnMonth}
-                            className="px-4 py-2 rounded-lg bg-navy-900 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-all flex items-center gap-2"
+                            className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg bg-navy-900 border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-all flex items-center gap-2"
                             title="Liquidar parcelas do mês e projetar próximo mês"
                         >
                             <ArrowRightLeft size={16} />
-                            <span className="hidden sm:inline">Virar Mês</span>
+                            <span>Virar Mês</span>
                         </button>
                         <button
                             onClick={() => handleOpenModal(activeTab === 'costs' ? 'cost' : 'income')}
-                            className="px-4 py-2 rounded-lg bg-primary hover:bg-sky-400 text-white text-sm font-medium shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all"
+                            className="flex-1 sm:flex-none justify-center px-3 sm:px-4 py-2 rounded-lg bg-primary hover:bg-sky-400 text-white text-sm font-medium shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all"
                         >
                             <Plus size={16} />
                             Adicionar
@@ -222,7 +222,7 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                 </div>
 
                 {/* List Content */}
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar">
                     {activeTab === 'costs' ? (
                         <div className="space-y-3">
                             {costs.length === 0 ? (
@@ -233,43 +233,37 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                                         layout
                                         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                         key={cost.id}
-                                        className={`p-4 rounded-xl border group transition-all ${cost.active ? 'bg-navy-900/50 border-slate-800' : 'bg-slate-900/30 border-slate-900 opacity-60'}`}
+                                        className={`p-3 sm:p-4 rounded-xl border group transition-all ${cost.active ? 'bg-navy-900/50 border-slate-800' : 'bg-slate-900/30 border-slate-900 opacity-60'}`}
                                     >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4 flex-1">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${cost.isFixed ? 'bg-indigo-500/10 text-indigo-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                                    {cost.isFixed ? <Repeat size={18} /> : <Calendar size={18} />}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className="text-sm font-semibold text-white truncate">{cost.name}</h4>
-                                                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 uppercase tracking-widest font-medium">
-                                                        <span className="flex items-center gap-1"><Calendar size={12} /> Dia {cost.dueDay}</span>
-                                                        {cost.isFixed ? (
-                                                            <span className="text-indigo-400/80">Fixo</span>
-                                                        ) : (
-                                                            <span>Parcelas: {cost.paidInstallments}/{cost.totalInstallments || '?'}</span>
-                                                        )}
-                                                    </div>
-                                                    {!cost.isFixed && cost.totalInstallments && (
-                                                        <div className="w-full bg-slate-800 h-1 rounded-full mt-3 overflow-hidden">
-                                                            <div
-                                                                className="bg-rose-500 h-full transition-all duration-1000"
-                                                                style={{ width: `${(cost.paidInstallments / cost.totalInstallments) * 100}%` }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
+                                        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                                            <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${cost.isFixed ? 'bg-indigo-500/10 text-indigo-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                                {cost.isFixed ? <Repeat size={18} /> : <Calendar size={18} />}
                                             </div>
-
-                                            <div className="flex items-center gap-6">
-                                                <div className="text-right">
-                                                    <p className="text-sm font-bold text-white">R$ {cost.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                                    <p className={`text-[10px] font-bold mt-0.5 uppercase tracking-wider ${cost.active ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                        {cost.active ? 'Em Aberto' : 'Finalizado'}
-                                                    </p>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                                                    <h4 className="text-sm font-semibold text-white truncate flex-1">{cost.name}</h4>
+                                                    <p className="text-sm font-bold text-white whitespace-nowrap">R$ {cost.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                                 </div>
-
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-[10px] sm:text-xs text-slate-500 uppercase tracking-widest font-medium">
+                                                    <span className="flex items-center gap-1"><Calendar size={12} /> Dia {cost.dueDay}</span>
+                                                    {cost.isFixed ? (
+                                                        <span className="text-indigo-400/80">Fixo</span>
+                                                    ) : (
+                                                        <span>{cost.paidInstallments}/{cost.totalInstallments || '?'}</span>
+                                                    )}
+                                                    <span className={`font-bold ${cost.active ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                                        {cost.active ? 'Em Aberto' : 'Finalizado'}
+                                                    </span>
+                                                </div>
+                                                {!cost.isFixed && cost.totalInstallments && (
+                                                    <div className="w-full bg-slate-800 h-1 rounded-full mt-3 overflow-hidden">
+                                                        <div
+                                                            className="bg-rose-500 h-full transition-all duration-1000"
+                                                            style={{ width: `${(cost.paidInstallments / cost.totalInstallments) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center justify-end gap-1 mt-2 sm:mt-1 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity">
                                                     <button onClick={() => handleOpenModal('cost', cost)} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg">
                                                         <Edit2 size={16} />
                                                     </button>
@@ -293,28 +287,24 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                                         layout
                                         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                         key={item.id}
-                                        className="p-4 bg-navy-900/50 rounded-xl border border-slate-800 group transition-all"
+                                        className="p-3 sm:p-4 bg-navy-900/50 rounded-xl border border-slate-800 group transition-all"
                                     >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4 flex-1">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.isRecurring ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                                                    {item.isRecurring ? <Repeat size={18} /> : <TrendingUp size={18} />}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className="text-sm font-semibold text-white truncate">{item.name}</h4>
-                                                    <p className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-1 flex items-center gap-3">
-                                                        <span className="flex items-center gap-1"><Calendar size={12} /> Dia {item.dueDay}</span>
-                                                        <span className={item.isRecurring ? 'text-emerald-400/80' : 'text-blue-400/80'}>
-                                                            {item.isRecurring ? 'Recorrente' : 'Único'}
-                                                        </span>
-                                                    </p>
-                                                </div>
+                                        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                                            <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${item.isRecurring ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                                                {item.isRecurring ? <Repeat size={18} /> : <TrendingUp size={18} />}
                                             </div>
-
-                                            <div className="flex items-center gap-6">
-                                                <p className="text-sm font-bold text-emerald-400">R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-start justify-between gap-2 sm:gap-4">
+                                                    <h4 className="text-sm font-semibold text-white truncate flex-1">{item.name}</h4>
+                                                    <p className="text-sm font-bold text-emerald-400 whitespace-nowrap">R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                                </div>
+                                                <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1 text-[10px] sm:text-xs text-slate-500 uppercase tracking-widest font-medium">
+                                                    <span className="flex items-center gap-1"><Calendar size={12} /> Dia {item.dueDay}</span>
+                                                    <span className={item.isRecurring ? 'text-emerald-400/80' : 'text-blue-400/80'}>
+                                                        {item.isRecurring ? 'Recorrente' : 'Único'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-end gap-1 mt-2 sm:mt-1 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity">
                                                     <button onClick={() => handleOpenModal('income', item)} className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg">
                                                         <Edit2 size={16} />
                                                     </button>
@@ -345,15 +335,15 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-navy-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden"
+                            className="bg-navy-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
                         >
-                            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <div className="p-4 sm:p-6 border-b border-slate-700 flex items-center justify-between shrink-0">
+                                <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                                     {editingItem ? 'Editar' : 'Novo'} {modalType === 'cost' ? 'Custo' : 'Rendimento'}
                                 </h3>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar">
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nome</label>
                                     <input
@@ -364,11 +354,11 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Valor</label>
                                         <input
-                                            type="number" step="0.01" required
+                                            type="number" step="0.01" required inputMode="decimal"
                                             value={formData.value} onChange={e => setFormData({ ...formData, value: e.target.value })}
                                             placeholder="0,00"
                                             className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -377,7 +367,7 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Dia Vencimento</label>
                                         <input
-                                            type="number" min="1" max="31" required
+                                            type="number" min="1" max="31" required inputMode="numeric"
                                             value={formData.dueDay} onChange={e => setFormData({ ...formData, dueDay: e.target.value })}
                                             className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
