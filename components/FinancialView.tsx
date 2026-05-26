@@ -140,43 +140,43 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
     return (
         <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-hidden">
             {/* Summary Cards */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-navy-800/50 p-3 rounded-xl border border-emerald-500/20 shadow-md shadow-emerald-500/5 flex items-center gap-2.5 min-w-0"
+                    className="bg-navy-800/50 p-3 sm:p-4 rounded-xl border border-emerald-500/20 shadow-md shadow-emerald-500/5 flex items-center gap-3 min-w-0"
                 >
-                    <div className="shrink-0 p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-                        <TrendingUp size={16} />
+                    <div className="shrink-0 p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <TrendingUp size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Rendimentos</span>
-                        <p className="text-sm sm:text-base font-bold text-white tracking-tight truncate">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <span className="block text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider truncate">Rendimentos</span>
+                        <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-navy-800/50 p-3 rounded-xl border border-rose-500/20 shadow-md shadow-rose-500/5 flex items-center gap-2.5 min-w-0"
+                    className="bg-navy-800/50 p-3 sm:p-4 rounded-xl border border-rose-500/20 shadow-md shadow-rose-500/5 flex items-center gap-3 min-w-0"
                 >
-                    <div className="shrink-0 p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
-                        <TrendingDown size={16} />
+                    <div className="shrink-0 p-2 rounded-lg bg-rose-500/10 text-rose-400">
+                        <TrendingDown size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Custos</span>
-                        <p className="text-sm sm:text-base font-bold text-white tracking-tight truncate">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <span className="block text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider truncate">Custos Ativos</span>
+                        <p className="text-base sm:text-lg font-bold text-white tracking-tight truncate">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    className="bg-navy-800/50 p-3 rounded-xl border border-blue-500/20 shadow-md shadow-blue-500/5 flex items-center gap-2.5 min-w-0"
+                    className="col-span-2 bg-navy-800/50 p-3 sm:p-4 rounded-xl border border-blue-500/20 shadow-md shadow-blue-500/5 flex items-center gap-3 min-w-0"
                 >
-                    <div className="shrink-0 p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
-                        <DollarSign size={16} />
+                    <div className="shrink-0 p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                        <DollarSign size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Saldo</span>
-                        <p className={`text-sm sm:text-base font-bold tracking-tight truncate ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        <span className="block text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider truncate">Saldo Mensal</span>
+                        <p className={`text-lg sm:text-xl font-bold tracking-tight truncate ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                             R$ {totals.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                     </div>
