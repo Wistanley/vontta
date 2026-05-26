@@ -140,46 +140,46 @@ export const FinancialView: React.FC<FinancialViewProps> = ({ costs, income, cur
     return (
         <div className="flex flex-col gap-4 sm:gap-6 h-full overflow-hidden">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5"
+                    className="bg-navy-800/50 p-3 rounded-xl border border-emerald-500/20 shadow-md shadow-emerald-500/5 flex items-center gap-2.5 min-w-0"
                 >
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                            <TrendingUp size={20} />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Rendimentos</span>
+                    <div className="shrink-0 p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <TrendingUp size={16} />
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="min-w-0 flex-1">
+                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Rendimentos</span>
+                        <p className="text-sm sm:text-base font-bold text-white tracking-tight truncate">R$ {totals.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-rose-500/20 shadow-lg shadow-rose-500/5"
+                    className="bg-navy-800/50 p-3 rounded-xl border border-rose-500/20 shadow-md shadow-rose-500/5 flex items-center gap-2.5 min-w-0"
                 >
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
-                            <TrendingDown size={20} />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Custos Ativos</span>
+                    <div className="shrink-0 p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
+                        <TrendingDown size={16} />
                     </div>
-                    <p className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="min-w-0 flex-1">
+                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Custos</span>
+                        <p className="text-sm sm:text-base font-bold text-white tracking-tight truncate">R$ {totals.totalCosts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    </div>
                 </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                    className="bg-navy-800/50 p-4 sm:p-6 rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-500/5"
+                    className="bg-navy-800/50 p-3 rounded-xl border border-blue-500/20 shadow-md shadow-blue-500/5 flex items-center gap-2.5 min-w-0"
                 >
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                            <DollarSign size={20} />
-                        </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wider">Saldo Mensal</span>
+                    <div className="shrink-0 p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+                        <DollarSign size={16} />
                     </div>
-                    <p className={`text-xl sm:text-2xl font-bold tracking-tight truncate ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        R$ {totals.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                        <span className="block text-[9px] sm:text-[10px] font-medium text-slate-400 uppercase tracking-wider truncate">Saldo</span>
+                        <p className={`text-sm sm:text-base font-bold tracking-tight truncate ${totals.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            R$ {totals.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
                 </motion.div>
             </div>
 
