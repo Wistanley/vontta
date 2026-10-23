@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Estes valores virão das variáveis de ambiente da Vercel
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || (import.meta as any).env?.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = typeof window !== 'undefined' ? import.meta.env.VITE_SUPABASE_URL || '' : '';
+const supabaseAnonKey =
+  typeof window !== 'undefined' ? import.meta.env.VITE_SUPABASE_ANON_KEY || '' : '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://unconfigured.supabase.co',
+  supabaseAnonKey || 'unconfigured',
+);

@@ -1,0 +1,122 @@
+{
+  "slideCount": 10,
+  "width": 1080,
+  "height": 1350,
+  "fontsEmbedded": true,
+  "fontsReady": true,
+  "photosEmbedded": 10,
+  "imagesReady": true,
+  "browserErrors": [],
+  "layout": [
+    {
+      "id": "slide-1",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 528,
+      "contentBottom": 1195,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 405
+    },
+    {
+      "id": "slide-2",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 730,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 290
+    },
+    {
+      "id": "slide-3",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 672,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 290
+    },
+    {
+      "id": "slide-4",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 717,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 304
+    },
+    {
+      "id": "slide-5",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 836,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 185
+    },
+    {
+      "id": "slide-6",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 836,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 185
+    },
+    {
+      "id": "slide-7",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 785,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 178
+    },
+    {
+      "id": "slide-8",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 643,
+      "contentBottom": 1157,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 290
+    },
+    {
+      "id": "slide-9",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 718,
+      "contentBottom": 1220,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 254
+    },
+    {
+      "id": "slide-10",
+      "width": 1080,
+      "height": 1350,
+      "contentTop": 214,
+      "contentBottom": 840,
+      "footerTop": 1281,
+      "overflows": false,
+      "horizontalOverflow": [],
+      "headingHeight": 378
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 
 import { supabase } from '../lib/supabaseClient';
 import { Task, User, ActivityLog, Status, Priority, Sector, Project, SystemSettings, BoardTask, BoardStatus, Subtask, ChatMessage, ChatState, ChatChannel, WeeklyHistory, FinancialCost, FinancialIncome } from '../types';
-import { GoogleGenAI } from "@google/genai";
+import { askAssistant } from "./assistantClient";
 
 class SupabaseService {
   private tasks: Task[] = [];
@@ -28,25 +28,6 @@ class SupabaseService {
   public currentUser: User | null = null;
   private initialized = false;
 
-  // Gemini Client
-  private ai: GoogleGenAI | null = null;
-
-  constructor() {
-    // Initialize Gemini
-    // VITE REQUIREMENT: Env vars must start with VITE_ to be exposed to the client
-    const apiKey = (import.meta as any).env?.VITE_API_KEY || process.env.API_KEY;
-
-    if (apiKey) {
-      console.log("Gemini API Key detectada:", apiKey.substring(0, 5) + "...");
-      this.ai = new GoogleGenAI({ apiKey });
-    } else {
-      console.warn("Gemini API Key não encontrada. Verifique se a variável VITE_API_KEY está configurada no .env ou Vercel.");
-    }
-  }
-
-  public isGeminiConfigured(): boolean {
-    return !!this.ai;
-  }
 
   // --- Auth Wrapper ---
   async authenticate(email: string, password: string): Promise<{ user: User | null, error: string | null }> {
@@ -456,9 +437,7 @@ class SupabaseService {
 
   async sendChatMessage(channelId: string, content: string) {
     if (!this.currentUser) return;
-    if (!this.ai) {
-      throw new Error("Chat indisponível: API Key não configurada.");
-    }
+
 
     // Find current channel state (use local cache for immediate check)
     const channel = this.chatChannels.find(c => c.id === channelId);
@@ -486,33 +465,19 @@ class SupabaseService {
       await this.fetchChatMessages();
       this.notify();
 
-      // PREPARE CONTEXT FOR GEMINI
+      // Contexto do canal para a API autenticada
       const historyLimit = 15;
       const channelMessages = this.getChatMessages(channelId).slice(-historyLimit);
 
       let historyPrompt = "Histórico do canal:\n";
       channelMessages.forEach(msg => {
-        const name = msg.user ? msg.user.name : "Gemini AI";
+        const name = msg.user ? msg.user.name : "Vontta AI";
         historyPrompt += `${name}: ${msg.content}\n`;
       });
 
       const currentPrompt = `O usuário ${this.currentUser.name} disse: ${content}`;
 
-      // CALL GEMINI - UPGRADED TO 3.0
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: historyPrompt + "\n" + currentPrompt }]
-          }
-        ],
-        config: {
-          systemInstruction: `Você é um assistente de IA colaborativo da equipe Vontta. Você está no canal de chat "${channel.name}". Responda de forma concisa, profissional e útil.`,
-        }
-      });
-
-      const aiResponseText = response.text;
+      const aiResponseText = await askAssistant(historyPrompt + "\n" + currentPrompt);
 
       // Insert AI Message
       await supabase.from('chat_messages').insert({

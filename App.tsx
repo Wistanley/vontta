@@ -1,835 +1,1021 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
-// SWITCH TO REAL BACKEND
-import { backend } from './services/supabaseBackend';
-import { Task, User, ActivityLog, Status, Sector, Project, SystemSettings, BoardTask, ChatMessage, ChatChannel, WeeklyHistory, FinancialCost, FinancialIncome } from './types';
-import { ActivityLogWidget } from './components/ActivityLogWidget';
-import { TaskModal } from './components/TaskModal';
-import { SettingsView } from './components/SettingsView';
-import { WeeklyPlanningView } from './components/WeeklyPlanningView';
-import { DashboardAnalytics } from './components/DashboardAnalytics';
-import { ActivitiesView } from './components/ActivitiesView';
-import { ProfileView } from './components/ProfileView';
-import { BoardView } from './components/BoardView';
-import { ChatView } from './components/ChatView';
-import { HistoryView } from './components/HistoryView'; // NEW IMPORT
-import { FinancialView } from './components/FinancialView'; // NEW IMPORT
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import type { User as AuthUser } from '@supabase/supabase-js';
 import {
   LayoutDashboard,
   CalendarDays,
+  Video,
+  FolderKanban,
+  Wallet,
+  Users,
+  Settings2,
+  Sparkles,
   Plus,
-  ListTodo,
-  LogOut,
-  Mail,
-  Lock,
+  Search,
+  ArrowUpRight,
+  ChevronDown,
+  Menu,
+  X,
   Loader2,
   ArrowRight,
-  FolderOpen,
-  Download,
-  Settings,
-  Kanban,
-  MessageSquare,
-  History, // NEW ICON
-  DollarSign, // NEW ICON
-  Menu, // Mobile Menu Icon
-  X // Close Icon
+  Check,
+  Cloud,
+  LogOut,
+  Command,
+  Bell,
+  TriangleAlert,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// --- Login Screen Component ---
-const LoginScreen: React.FC<{ onLogin: (user: User) => void; settings: SystemSettings }> = ({ onLogin, settings }) => {
+import { supabase, isSupabaseConfigured } from './lib/supabaseClient';
+import {
+  Entry,
+  View,
+  Kind,
+  Content,
+  WorkProject,
+  WorkTask,
+  Transaction,
+  Client,
+  localDate,
+  fetchEntries,
+  persistEntry,
+  deleteEntry,
+  demoData,
+  newEntry,
+  base,
+  canSetProjectParent,
+} from './lib/workspace';
+import {
+  Overview,
+  Planner,
+  ContentStudio,
+  Projects,
+  Clients,
+  Finance,
+  Settings,
+  ViewProps,
+} from './components/WorkspaceViews';
+import { EntryEditor, Modal, IconButton, RecordingMode, Pill } from './components/WorkspaceUI';
+import { AssistantPanel, AIRequest } from './components/AssistantPanel';
+const LegacyApp = lazy(() => import('./LegacyApp'));
+const PostCreator = lazy(() => import('./components/PostCreator'));
+const navigation = [
+  { view: 'overview', label: 'Visão geral', icon: LayoutDashboard },
+  { view: 'planner', label: 'Minha agenda', icon: CalendarDays },
+  { view: 'content', label: 'Estúdio de conteúdo', icon: Video },
+  { view: 'posts', label: 'Criador de posts', icon: Sparkles },
+  { view: 'projects', label: 'Projetos', icon: FolderKanban },
+  { view: 'finance', label: 'Financeiro', icon: Wallet },
+  { view: 'clients', label: 'Clientes', icon: Users },
+] as const;
+const titles: Record<View, string> = {
+  overview: 'Visão geral',
+  planner: 'Minha agenda',
+  content: 'Estúdio de conteúdo',
+  posts: 'Criador de posts',
+  projects: 'Projetos',
+  finance: 'Financeiro',
+  clients: 'Clientes',
+  settings: 'Preferências',
+};
+const demoKey = 'vontta-workspace-demo-v1';
+function loadDemo(): Entry[] {
+  try {
+    const saved = localStorage.getItem(demoKey);
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (Array.isArray(data) && data.every((e) => e.id && e.kind)) return data;
+    }
+  } catch {}
+  return demoData();
+}
+function Brand() {
+  return (
+    <div className="brand">
+      <span className="brand-mark">
+        <i />
+        <i />
+        <i />
+      </span>
+      <span>
+        vontta<span className="brand-period">.</span>
+      </span>
+    </div>
+  );
+}
+function Login({ onDemo }: { onDemo: () => void }) {
+  const [signup, setSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Handle fallback if image 404s (e.g. fresh install)
-  const [logoError, setLogoError] = useState(false);
-
-  // Sign Up State
-  const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMessage(null);
-    setIsLoading(true);
-
+    setBusy(true);
+    setError('');
+    setMessage('');
     try {
-      if (isSignUp) {
-        const result = await backend.signUp(email, password, name);
-        if (result.error) {
-          setError(result.error);
-        } else if (result.user) {
-          onLogin(result.user);
-        } else {
-          setSuccessMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar (se necessário) ou faça login.');
-          setIsSignUp(false);
-        }
+      if (!isSupabaseConfigured)
+        throw new Error(
+          'Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para conectar sua conta.',
+        );
+      if (signup) {
+        const { error, data } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name } },
+        });
+        if (error) throw error;
+        if (!data.session)
+          setMessage('Conta criada. Verifique seu e-mail para confirmar o acesso.');
       } else {
-        const result = await backend.authenticate(email, password);
-        if (result.user) {
-          onLogin(result.user);
-        } else {
-          setError(result.error || 'Erro ao autenticar');
-        }
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro inesperado.');
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
-      setIsLoading(false);
+      setBusy(false);
     }
   };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#02040a] relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/10 to-cyan-500/5 z-0" />
-
-      <div className="bg-navy-800/80 backdrop-blur-xl p-8 rounded-2xl border border-white/5 shadow-2xl w-full max-w-md z-10 relative">
-        <div className="text-center mb-8">
-          {/* Dynamic Logo in Login */}
-          {settings.logoUrl && !logoError ? (
-            <img
-              src={settings.logoUrl}
-              alt="Logo"
-              className="h-16 w-auto mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.3)]"
-              onError={() => setLogoError(true)}
-            />
-          ) : (
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 mb-4 shadow-lg shadow-blue-500/20">
-              <LayoutDashboard className="text-white" size={24} />
-            </div>
-          )}
-          <h1 className="text-3xl font-bold text-white tracking-tight">{(settings.logoUrl && !logoError) ? '' : 'Vontta'}</h1>
-          <p className="text-slate-400 mt-2">{isSignUp ? 'Crie sua conta' : 'Acesse sua conta'}</p>
+    <div className="login-page">
+      <div className="login-story">
+        <Brand />
+        <div>
+          <Pill tone="green">SEU DIA COM DIREÇÃO</Pill>
+          <h1>
+            Organize o trabalho.
+            <br />
+            Dê espaço às ideias.
+            <br />
+            <span>Faça acontecer.</span>
+          </h1>
+          <p>
+            Rotina, conteúdo e negócios.
+            <br />
+            Um espaço para conectar tudo o que você faz.
+          </p>
+          <div className="login-features">
+            <span>
+              <CalendarDays size={16} />
+              Planeje com clareza
+            </span>
+            <span>
+              <Video size={16} />
+              Crie com consistência
+            </span>
+            <span>
+              <FolderKanban size={16} />
+              Entregue com confiança
+            </span>
+          </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {isSignUp && (
-            <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1.5 ml-1">Nome Completo</label>
-              <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                {/* Reusing Mail icon for simplicity or change to User icon if available */}
+        <span className="small muted">FEITO PARA O SEU RITMO.</span>
+      </div>
+      <div className="login-form-side">
+        <div className="login-form">
+          <span className="eyebrow">BEM-VINDO AO SEU ESPAÇO</span>
+          <h2>{signup ? 'Vamos começar?' : 'Bom ter você por aqui.'}</h2>
+          <p className="muted">
+            {signup
+              ? 'Crie sua conta para conectar suas próximas entregas.'
+              : 'Entre para dar o próximo passo no seu dia.'}
+          </p>
+          <form onSubmit={submit}>
+            {signup && (
+              <label className="field">
+                <span>Seu nome</span>
                 <input
-                  type="text"
-                  required={isSignUp}
+                  required
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
-                  placeholder="Seu Nome"
                 />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5 ml-1">E-mail</label>
-            <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+              </label>
+            )}
+            <label className="field">
+              <span>E-mail</span>
               <input
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="seu@email.com"
+                placeholder="voce@empresa.com.br"
               />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1.5 ml-1">Senha</label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+            </label>
+            <label className="field">
+              <span>Senha</span>
               <input
                 type="password"
                 required
+                minLength={8}
+                autoComplete={signup ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-navy-900 border border-slate-700 text-white rounded-xl pl-10 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all"
-                placeholder="••••••••"
-                minLength={6}
+                placeholder="Sua senha"
               />
-            </div>
-          </div>
-
-          <AnimatePresence>
+            </label>
             {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex items-center gap-2"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              <p className="error-message" role="alert">
                 {error}
-              </motion.div>
+              </p>
             )}
-            {successMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-emerald-400 text-sm bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg flex items-center gap-2"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                {successMessage}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-medium py-3 rounded-xl shadow-lg shadow-blue-500/20 transition-all transform active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
-          >
-            {isLoading ? (
-              <Loader2 className="animate-spin" size={20} />
-            ) : (
-              <>
-                {isSignUp ? 'Criar Conta' : 'Entrar'}
-                <ArrowRight size={18} />
-              </>
-            )}
-          </button>
-
-          <div className="text-center mt-4">
-            <button
-              type="button"
-              onClick={() => { setIsSignUp(!isSignUp); setError(null); setSuccessMessage(null); }}
-              className="text-sm text-slate-400 hover:text-white transition-colors underline decoration-slate-600 hover:decoration-white"
-            >
-              {isSignUp ? 'Já tem uma conta? Faça login' : 'Não tem conta? Cadastre-se'}
+            {message && <p className="success-message">{message}</p>}
+            <button className="button primary" disabled={busy}>
+              {busy ? <Loader2 className="spin" size={17} /> : <ArrowRight size={17} />}{' '}
+              {signup ? 'Criar minha conta' : 'Entrar no meu espaço'}
             </button>
+          </form>
+          <button
+            className="text-button"
+            onClick={() => {
+              setSignup(!signup);
+              setError('');
+            }}
+          >
+            {signup ? 'Já tenho conta' : 'Criar uma conta'}
+          </button>
+          <div className="login-divider">
+            <span>ou conheça antes</span>
           </div>
-        </form>
+          <button className="button secondary" onClick={onDemo}>
+            Explorar demonstração
+            <ArrowUpRight size={17} />
+          </button>
+          {!isSupabaseConfigured && (
+            <p className="small muted">
+              Ambiente local: configure o Supabase para usar sua conta. A demonstração está pronta
+              para explorar.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
-// --- Main App Component ---
+}
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-  // Data State
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [boardTasks, setBoardTasks] = useState<BoardTask[]>([]);
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [sectors, setSectors] = useState<Sector[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [settings, setSettings] = useState<SystemSettings>({ logoUrl: null, faviconUrl: null });
-  const [logoError, setLogoError] = useState(false);
-
-  // Chat Data
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatChannels, setChatChannels] = useState<ChatChannel[]>([]);
-  const [history, setHistory] = useState<WeeklyHistory[]>([]); // New State
-  const [financialCosts, setFinancialCosts] = useState<FinancialCost[]>([]);
-  const [financialIncome, setFinancialIncome] = useState<FinancialIncome[]>([]);
-
-  // Mobile Menu State
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // UI State
-  const [currentView, setCurrentView] = useState<'dashboard' | 'activities' | 'planning' | 'board' | 'chat' | 'settings' | 'profile' | 'history' | 'financial'>('dashboard');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [duplicatingTask, setDuplicatingTask] = useState<Task | null>(null);
-
-  // 1. Init Auth Check
-  useEffect(() => {
-    const initAuth = async () => {
-      const user = await backend.checkSession();
-      if (user) setCurrentUser(user);
-      setIsLoadingSession(false);
-    };
-    initAuth();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [demo, setDemo] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [view, setView] = useState<View>(() => {
+    const hash = location.hash.slice(1);
+    return hash in titles ? (hash as View) : 'overview';
+  });
+  const [editing, setEditing] = useState<Entry | null>(null);
+  const [ai, setAI] = useState<AIRequest | null>(null);
+  const [recording, setRecording] = useState<Content | null>(null);
+  const [menu, setMenu] = useState(false);
+  const [quick, setQuick] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [toast, setToast] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [importOpen, setImportOpen] = useState(false);
+  const [legacy, setLegacy] = useState(false);
+  const [importBusy, setImportBusy] = useState(false);
+  const [saving, setSaving] = useState(0);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generation = useRef(0);
+  const revision = useRef(0);
+  const savingIds = useRef(new Set<string>());
+  const notify = useCallback((message: string) => {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(''), 5000);
   }, []);
-
-  // 2. Load Data Subscription
   useEffect(() => {
-    // Only run this effect if we have a logged-in user
-    if (!currentUser) return;
-
-    const refreshData = () => {
-      setUsers(backend.getUsers());
-      setTasks(backend.getTasks());
-      setBoardTasks(backend.getBoardTasks());
-      setLogs(backend.getLogs());
-      setSectors(backend.getSectors());
-      setProjects(backend.getProjects());
-      setSettings(backend.getSettings());
-      setChatMessages(backend.getChatMessages());
-      setChatChannels(backend.getChatChannels());
-      setHistory(backend.getWeeklyHistory()); // Fetch History
-      setFinancialCosts(backend.getFinancialCosts());
-      setFinancialIncome(backend.getFinancialIncome());
-      setLogoError(false);
-
-      // Sync currentUser state with backend if profile updated
-      if (backend.currentUser && backend.currentUser.id === currentUser.id) {
-        setCurrentUser(prev => {
-          if (JSON.stringify(prev) !== JSON.stringify(backend.currentUser)) {
-            return backend.currentUser;
-          }
-          return prev;
-        });
-      }
-    };
-
-    // Ensure data is initialized
-    backend.initializeData().then(() => {
-      refreshData();
-    });
-
-    const unsubscribe = backend.subscribe(() => {
-      refreshData();
-    });
-
-    return () => unsubscribe();
-  }, [currentUser]);
-
-  // 3. Update Favicon dynamically
-  useEffect(() => {
-    if (settings.faviconUrl) {
-      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.type = 'image/x-icon';
-        link.rel = 'shortcut icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-      }
-      link.href = settings.faviconUrl;
-    }
-  }, [settings.faviconUrl]);
-
-  const handleLoginSuccess = (user: User) => {
-    setCurrentUser(user);
-  };
-
-  const handleLogout = () => {
-    backend.logout();
-    // Clear all local state to ensure no stale data appears on next login
-    setTasks([]);
-    setBoardTasks([]);
-    setLogs([]);
-    setUsers([]);
-    setSectors([]);
-    setProjects([]);
-    setChatMessages([]);
-    setChatChannels([]);
-    setCurrentUser(null);
-  };
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setDuplicatingTask(null);
-    setIsModalOpen(true);
-  };
-
-  const handleDuplicate = (task: Task) => {
-    setEditingTask(null);
-    setDuplicatingTask(task);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta atividade?')) {
-      backend.deleteTask(id);
-    }
-  };
-
-  // Helper to resolve Project Name
-  const getProjectName = (projectId: string) => {
-    return projects.find(p => p.id === projectId)?.name || 'Projeto Desconhecido';
-  };
-
-  // Computed Stats
-  const stats = useMemo(() => {
-    const myTasks = tasks.filter(t => t.collaboratorId === currentUser?.id);
-    const myHours = backend.calculateTotalHours(currentUser?.id);
-
-    const completed = tasks.filter(t => t.status === Status.COMPLETED).length;
-    const pending = tasks.length - completed;
-
-    return { myHours, completed, pending, total: tasks.length };
-  }, [tasks, currentUser]);
-
-  // Export to CSV Logic
-  const handleExportCSV = () => {
-    if (tasks.length === 0) {
-      alert('Não há dados para exportar.');
+    if (!isSupabaseConfigured) {
+      setLoading(false);
       return;
     }
-
-    const headers = [
-      'Projeto',
-      'Setor',
-      'Colaborador',
-      'Atividade Planejada',
-      'Atividade Entregue',
-      'Status',
-      'Prioridade',
-      'Data Entrega',
-      'Horas',
-      'Observações'
-    ];
-
-    const rows = tasks.map(t => {
-      const projectName = getProjectName(t.projectId);
-      const collaboratorName = users.find(u => u.id === t.collaboratorId)?.name || 'N/A';
-      const escape = (str: string | undefined | null) => {
-        const s = str ? String(str) : '';
-        return `"${s.replace(/"/g, '""')}"`;
-      };
-
-      return [
-        escape(projectName),
-        escape(t.sector),
-        escape(collaboratorName),
-        escape(t.plannedActivity),
-        escape(t.deliveredActivity),
-        escape(t.status),
-        escape(t.priority),
-        escape(t.dueDate),
-        escape(t.hoursDedicated),
-        escape(t.notes)
-      ].join(',');
+    let alive = true;
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (alive) {
+          setUser(data.session?.user || null);
+          if (error) setLoadError('Não foi possível verificar sua sessão. Entre novamente.');
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (alive) setLoading(false);
+      });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) setDemo(false);
     });
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `vontta_relatorio_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    return () => {
+      alive = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+  useEffect(() => {
+    let alive = true;
+    generation.current++;
+    if (demo) {
+      setEntries(loadDemo());
+      setLoadError('');
+      return;
+    }
+    if (!user) {
+      setEntries([]);
+      return;
+    }
+    setLoading(true);
+    setEntries([]);
+    fetchEntries(user.id)
+      .then((data) => {
+        if (alive) {
+          setEntries(data);
+          setLoadError('');
+        }
+      })
+      .catch((e) => {
+        if (alive) setLoadError(e.message);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user?.id, demo]);
+  useEffect(() => {
+    if (demo || !user) return;
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      const gen = generation.current;
+      const rev = revision.current;
+      fetchEntries(user.id)
+        .then((data) => {
+          if (gen === generation.current && rev === revision.current) {
+            setEntries(data);
+            setLoadError('');
+          }
+        })
+        .catch(() =>
+          notify('Não foi possível atualizar os dados da nuvem. Verifique sua conexão.'),
+        );
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [user?.id, demo, notify]);
+  useEffect(() => {
+    const onHash = () => {
+      const next = location.hash.slice(1);
+      if (next in titles) setView(next as View);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  const navigate = (next: View) => {
+    setView(next);
+    location.hash = next;
+    setMenu(false);
+    window.scrollTo({ top: 0 });
   };
-
-  if (isLoadingSession) {
+  const save = async (entry: Entry) => {
+    if (!entry.title.trim()) throw new Error('Preencha o título.');
+    if (
+      entry.kind === 'project' &&
+      !canSetProjectParent(
+        entry.id,
+        entry.parentProjectId || '',
+        entries.filter((e): e is WorkProject => e.kind === 'project'),
+      )
+    )
+      throw new Error(
+        'Escolha um projeto pai válido. Um projeto não pode ficar dentro de si ou de um de seus subprojetos.',
+      );
+    if (savingIds.current.has(entry.id)) return;
+    savingIds.current.add(entry.id);
+    revision.current++;
+    const gen = generation.current;
+    setSaving((v) => v + 1);
+    try {
+      if (!demo) {
+        if (!user) throw new Error('Sua sessão expirou. Entre novamente.');
+        if (loadError) throw new Error('Recarregue os dados antes de fazer alterações.');
+        entry = await persistEntry(user.id, entry);
+      }
+      if (gen !== generation.current) return;
+      setEntries((current) => {
+        const next = current.some((e) => e.id === entry.id)
+          ? current.map((e) => (e.id === entry.id ? entry : e))
+          : [...current, entry];
+        if (demo) {
+          try {
+            localStorage.setItem(demoKey, JSON.stringify(next));
+          } catch {
+            notify('O navegador não conseguiu guardar esta alteração. Exporte um backup.');
+          }
+        }
+        return next;
+      });
+    } catch (e) {
+      notify((e as Error).message);
+      throw e;
+    } finally {
+      revision.current++;
+      savingIds.current.delete(entry.id);
+      setSaving((v) => v - 1);
+    }
+  };
+  const remove = async (entry: Entry) => {
+    if (
+      entry.kind === 'project' &&
+      entries.some((e) => e.kind === 'project' && e.parentProjectId === entry.id)
+    )
+      throw new Error(
+        'Este projeto possui subprojetos. Mova ou exclua os subprojetos antes de excluir o projeto principal.',
+      );
+    if (
+      entry.kind === 'client' &&
+      entries.some((e) => e.kind === 'project' && e.clientId === entry.id)
+    )
+      throw new Error(
+        'Este cliente está vinculado a um projeto. Remova o vínculo antes de excluir.',
+      );
+    if (
+      entry.kind === 'project' &&
+      entries.some(
+        (e) => (e.kind === 'task' || e.kind === 'transaction') && e.projectId === entry.id,
+      )
+    )
+      throw new Error(
+        'Remova os vínculos das atividades e dos lançamentos antes de excluir este projeto.',
+      );
+    if (!demo && user) await deleteEntry(user.id, entry.id);
+    setEntries((current) => {
+      const next = current.filter((e) => e.id !== entry.id);
+      if (demo) localStorage.setItem(demoKey, JSON.stringify(next));
+      return next;
+    });
+    notify('Registro excluído.');
+  };
+  const logout = async () => {
+    if (!demo) await supabase.auth.signOut();
+    setDemo(false);
+    setUser(null);
+    setEntries([]);
+    setEditing(null);
+    setAI(null);
+    setLoadError('');
+  };
+  const importLegacy = async () => {
+    if (!user) return;
+    setImportBusy(true);
+    try {
+      const names = ['projects', 'tasks', 'financial_costs', 'financial_income'];
+      const results = await Promise.all(names.map((name) => supabase.from(name).select('*')));
+      for (let i = 0; i < results.length; i++)
+        if (results[i].error)
+          throw new Error(`Não foi possível ler ${names[i]}. Nenhum dado foi importado.`);
+      const existing = new Set(entries.map((e) => e.id));
+      const incoming: Entry[] = [];
+      for (const p of results[0].data || [])
+        if (!existing.has(p.id))
+          incoming.push({
+            ...(newEntry('project') as WorkProject),
+            id: p.id,
+            title: p.name || 'Projeto importado',
+          });
+      for (const t of results[1].data || [])
+        if (!existing.has(t.id))
+          incoming.push({
+            ...(newEntry('task') as WorkTask),
+            id: t.id,
+            title: t.planned_activity || 'Atividade importada',
+            date: t.due_date?.slice(0, 10) || localDate(),
+            done: t.status === 'Concluído',
+            priority: ['Alta', 'Baixa', 'Média'].includes(t.priority) ? t.priority : 'Média',
+            projectId: t.project_id || '',
+          });
+      for (const [index, type] of [
+        [2, 'expense'],
+        [3, 'income'],
+      ] as const)
+        for (const t of results[index].data || []) {
+          if (
+            t.user_id !== user.id ||
+            existing.has(t.id) ||
+            (type === 'expense' && t.active === false)
+          )
+            continue;
+          const day = Math.max(
+            1,
+            Math.min(
+              Number(t.due_day) || 1,
+              new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(),
+            ),
+          );
+          incoming.push({
+            ...(newEntry('transaction') as Transaction),
+            id: t.id,
+            title: t.name,
+            amount: Number(t.value) || 0,
+            type,
+            category: t.category || 'Importado',
+            date: localDate().slice(0, 8) + String(day).padStart(2, '0'),
+            recurrence: t.is_fixed || t.is_recurring ? 'monthly' : 'none',
+            paid: false,
+          });
+        }
+      for (const entry of incoming) await save(entry);
+      notify(`${incoming.length} registro(s) importado(s). Confira datas e valores.`);
+      setImportOpen(false);
+    } catch (e) {
+      notify((e as Error).message);
+    } finally {
+      setImportBusy(false);
+    }
+  };
+  const startDemo = () => {
+    setDemo(true);
+    setLoading(false);
+  };
+  if (loading)
     return (
-      <div className="h-screen bg-[#02040a] flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={32} />
+      <div className="loading-screen">
+        <Brand />
+        <Loader2 className="spin" size={25} />
+        <p>Organizando seu espaço…</p>
       </div>
     );
-  }
-
-  if (!currentUser) {
-    return <LoginScreen onLogin={handleLoginSuccess} settings={settings} />;
-  }
-
+  if (!user && !demo) return <Login onDemo={startDemo} />;
+  if (legacy)
+    return (
+      <div>
+        <button className="legacy-return button primary" onClick={() => setLegacy(false)}>
+          Voltar ao novo espaço
+        </button>
+        <Suspense fallback={<p>Carregando versão anterior…</p>}>
+          <LegacyApp />
+        </Suspense>
+      </div>
+    );
+  const name = demo ? 'Alex' : user?.user_metadata?.name || user?.email?.split('@')[0] || 'Você';
+  const props: ViewProps = {
+    entries,
+    edit: setEditing,
+    save,
+    navigate,
+    ai: setAI,
+    record: setRecording,
+    notify,
+  };
+  const count = entries.filter((e) => e.kind === 'task' && !e.done && e.date <= localDate()).length;
+  const renderNavigation = () => (
+    <>
+      <span className="nav-section-label">MEU ESPAÇO</span>
+      {navigation.map(({ view: next, label, icon: Icon }) => (
+        <button
+          key={next}
+          aria-current={view === next ? 'page' : undefined}
+          className={`nav-item ${view === next ? 'active' : ''}`}
+          onClick={() => navigate(next)}
+        >
+          <Icon size={19} />
+          <span>{label}</span>
+          {next === 'planner' && count > 0 ? <span className="nav-count">{count}</span> : null}
+          {next === 'content' && <span className="new-label">NOVO</span>}
+        </button>
+      ))}
+    </>
+  );
   return (
-    <div className="flex h-screen bg-[#02040a] text-slate-200 overflow-hidden font-sans">
-
-      {/* Sidebar */}
-      <aside className="w-64 bg-navy-900 border-r border-slate-800 flex flex-col hidden md:flex">
-        <div className="p-6 flex items-center gap-3">
-          {/* Dynamic Logo in Sidebar */}
-          {settings.logoUrl && !logoError ? (
-            <img
-              src={settings.logoUrl}
-              alt="Logo"
-              className="h-8 w-auto max-w-[150px] object-contain"
-              onError={() => setLogoError(true)}
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <LayoutDashboard className="text-white" size={18} />
-            </div>
-          )}
-          {(!settings.logoUrl || logoError) && <span className="font-bold text-lg tracking-tight text-white">Vontta</span>}
-        </div>
-
-        <div className="px-4 py-2">
-          <div className="bg-navy-800/50 rounded-xl p-4 border border-slate-800">
-            <p className="text-xs text-slate-400 font-medium uppercase mb-2">Suas Horas (Semana)</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white tracking-tighter">{stats.myHours}</span>
-              <span className="text-xs text-slate-500">h</span>
-            </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full" style={{ width: '65%' }}></div>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 mt-6 space-y-1">
-          <button
-            onClick={() => setCurrentView('dashboard')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'dashboard' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <LayoutDashboard size={18} />
-            <span>Dashboard</span>
+    <div className="app-shell">
+      <a className="skip-link" href="#workspace-main">
+        Pular para o conteúdo
+      </a>
+      <aside className="sidebar">
+        <Brand />
+        <button className="workspace-switch" onClick={() => navigate('settings')}>
+          <span className="workspace-avatar">{name.slice(0, 1).toUpperCase()}</span>
+          <span>
+            <strong>Meu workspace</strong>
+            <small>Desenvolvimento & criação</small>
+          </span>
+          <ChevronDown size={14} />
+        </button>
+        <nav aria-label="Menu principal">{renderNavigation()}</nav>
+        <div className="sidebar-bottom">
+          <button className="sidebar-ai" onClick={() => setAI({ action: 'ideas' })}>
+            <span className="sidebar-ai-icon">
+              <Sparkles size={19} />
+            </span>
+            <strong>Uma ideia por vez.</strong>
+            <p>
+              Seu próximo passo pode
+              <br />
+              começar com uma conversa.
+            </p>
+            <span>
+              Conversar com a IA
+              <ArrowUpRight size={14} />
+            </span>
           </button>
-
           <button
-            onClick={() => setCurrentView('activities')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'activities' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
+            className={`nav-item ${view === 'settings' ? 'active' : ''}`}
+            onClick={() => navigate('settings')}
           >
-            <ListTodo size={18} />
-            <span>Atividades</span>
+            <Settings2 size={18} />
+            Preferências
           </button>
-
-          <button
-            onClick={() => setCurrentView('planning')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'planning' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <CalendarDays size={18} />
-            <span>Planejamento</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentView('board')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'board' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <Kanban size={18} />
-            <span>Quadro</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentView('chat')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'chat' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <MessageSquare size={18} />
-            <span>Chat IA</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentView('history')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'history' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <History size={18} />
-            <span>Histórico</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentView('financial')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'financial' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <DollarSign size={18} />
-            <span>Financeiro</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentView('settings')}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'settings' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <FolderOpen size={18} />
-            <span>Cadastros</span>
-          </button>
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <div
-            onClick={() => setCurrentView('profile')}
-            className={`flex items-center gap-3 mb-4 p-2 rounded-lg cursor-pointer transition-colors ${currentView === 'profile' ? 'bg-white/10' : 'hover:bg-white/5'}`}
-          >
-            <img src={currentUser.avatar} className="w-9 h-9 rounded-full border border-slate-600 object-cover" alt="me" />
-            <div className="overflow-hidden flex-1">
-              <p className="text-sm font-medium text-white truncate">{currentUser.name}</p>
-              <p className="text-xs text-slate-500 truncate">Editar Perfil</p>
-            </div>
-            <Settings size={14} className="text-slate-500" />
-          </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors w-full px-2">
-            <LogOut size={14} />
-            Sair do sistema
+          <button className="profile-button" onClick={() => navigate('settings')}>
+            <span className="user-avatar">{name.slice(0, 2).toUpperCase()}</span>
+            <span>
+              <strong>{name}</strong>
+              <small>Meu espaço pessoal</small>
+            </span>
+            <MoreDots />
           </button>
         </div>
       </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        {/* Top Header */}
-        <header className="h-16 border-b border-slate-800 bg-navy-900/80 backdrop-blur-md flex items-center justify-between px-4 md:px-6 z-20">
-          <div className="flex items-center gap-3">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+      <div className="main-shell">
+        <header className="topbar">
+          <div className="topbar-breadcrumb">
+            <IconButton
+              className="mobile-menu-button"
+              label="Abrir menu"
+              onClick={() => setMenu(true)}
             >
-              <Menu size={24} />
-            </button>
-            <h1 className="text-lg font-semibold text-white">
-              {currentView === 'dashboard' && 'Visão Geral (Analytics)'}
-              {currentView === 'activities' && 'Lista de Atividades'}
-              {currentView === 'planning' && 'Agenda Semanal'}
-              {currentView === 'board' && 'Quadro de Tarefas'}
-              {currentView === 'chat' && 'Chat Colaborativo'}
-              {currentView === 'settings' && 'Gerenciamento'}
-              {currentView === 'profile' && 'Perfil do Usuário'}
-              {currentView === 'history' && 'Histórico Semanal'}
-            </h1>
+              <Menu size={21} />
+            </IconButton>
+            <span className="breadcrumb-workspace">
+              Meu workspace<span>/</span>
+            </span>
+            <strong>{titles[view]}</strong>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Common Actions for Dashboard/Activities */}
-            {(currentView === 'dashboard' || currentView === 'activities') && (
-              <>
-                <div className="hidden md:flex items-center gap-6 mr-2 text-sm text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                    <span>{stats.completed} Entregues</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleExportCSV}
-                  className="hidden sm:flex items-center gap-2 bg-navy-800 border border-slate-700 hover:bg-navy-700 text-slate-300 text-sm font-medium px-4 py-2 rounded-lg transition-all"
-                  title="Exportar CSV"
-                >
-                  <Download size={16} />
-                  <span>Exportar</span>
-                </button>
-
-                <button
-                  onClick={() => { setEditingTask(null); setDuplicatingTask(null); setIsModalOpen(true); }}
-                  className="bg-primary hover:bg-sky-400 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg shadow-sky-500/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-                >
-                  <Plus size={16} />
-                  <span className="hidden sm:inline">Nova Atividade</span>
-                  <span className="sm:hidden">Nova</span>
-                </button>
-              </>
-            )}
+          <div className="topbar-actions">
+            <span className="top-date">
+              {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
+            </span>
+            <button className="global-search" onClick={() => setSearchOpen(true)}>
+              <Search size={15} />
+              <span>Buscar no espaço</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+            <IconButton label="Adicionar novo registro" onClick={() => setQuick(true)}>
+              <Plus size={19} />
+            </IconButton>
+            <button
+              className="top-avatar"
+              aria-label="Abrir preferências"
+              onClick={() => navigate('settings')}
+            >
+              {name.slice(0, 1).toUpperCase()}
+            </button>
           </div>
         </header>
-
-        {/* Dynamic Body */}
-        <div className="flex-1 p-4 md:p-6 overflow-hidden flex gap-4 md:gap-6">
-
-          {/* Main View Container */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
-
-            {/* VIEW: DASHBOARD */}
-            {currentView === 'dashboard' && (
-              <DashboardAnalytics tasks={tasks} projects={projects} users={users} />
+        <main id="workspace-main" className={`workspace-main view-${view}`}>
+          <div className="workspace-status">
+            {demo ? (
+              <span>
+                <span className="inline-dot amber" />
+                Demonstração · dados fictícios salvos neste navegador
+              </span>
+            ) : (
+              <span>
+                <Cloud size={12} />
+                {saving ? 'Salvando alterações…' : 'Seu espaço conectado'}
+              </span>
             )}
-
-            {/* VIEW: ACTIVITIES */}
-            {currentView === 'activities' && (
-              <ActivitiesView
-                tasks={tasks}
-                projects={projects}
-                users={users}
-                currentUser={currentUser}
-                onEdit={handleEdit}
-                onDuplicate={handleDuplicate}
-                onDelete={handleDelete}
-              />
+            {demo && (
+              <button className="text-button" onClick={() => void logout()}>
+                Conectar minha conta
+                <ArrowUpRight size={12} />
+              </button>
             )}
-
-            {/* VIEW: PLANNING */}
-            {currentView === 'planning' && (
-              <WeeklyPlanningView tasks={tasks} projects={projects} currentUser={currentUser} />
-            )}
-
-            {/* VIEW: BOARD */}
-            {currentView === 'board' && (
-              <BoardView tasks={boardTasks} users={users} />
-            )}
-
-            {/* VIEW: CHAT (NEW) */}
-            {currentView === 'chat' && (
-              <ChatView
-                messages={chatMessages}
-                channels={chatChannels}
-                currentUser={currentUser}
-                users={users}
-              />
-            )}
-
-            {/* VIEW: FINANCIAL (NEW) */}
-            {currentView === 'financial' && (
-              <FinancialView
-                costs={financialCosts}
-                income={financialIncome}
-                currentUser={currentUser}
-              />
-            )}
-
-            {/* VIEW: HISTORY (NEW) */}
-            {currentView === 'history' && (
-              <HistoryView history={history} projects={projects} users={users} />
-            )}
-
-            {/* VIEW: SETTINGS */}
-            {currentView === 'settings' && (
-              <SettingsView sectors={sectors} projects={projects} users={users} />
-            )}
-
-            {/* VIEW: PROFILE */}
-            {currentView === 'profile' && (
-              <ProfileView currentUser={currentUser} sectors={sectors} />
-            )}
-
           </div>
-
-          {/* Right Column: Activity Log Widget (Visible on Dashboard and Activities) */}
-          {(currentView === 'dashboard' || currentView === 'activities') && (
-            <div className="w-80 hidden xl:block">
-              <ActivityLogWidget logs={logs} users={users} />
+          {loadError ? (
+            <div className="connection-error" role="alert">
+              <TriangleAlert size={25} />
+              <h2>Vamos reconectar seu espaço</h2>
+              <p>{loadError}</p>
+              <button className="button primary" onClick={() => location.reload()}>
+                Tentar novamente
+              </button>
+              <button className="button secondary" onClick={() => setLegacy(true)}>
+                Abrir versão anterior
+              </button>
             </div>
-          )}
-
-        </div>
-      </main>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 bg-navy-900 border-r border-slate-800 z-50 md:hidden flex flex-col shadow-2xl"
-            >
-              <div className="p-6 flex items-center justify-between border-b border-slate-800">
-                {/* Dynamic Logo in Mobile Menu */}
-                <div className="flex items-center gap-3">
-                  {settings.logoUrl && !logoError ? (
-                    <img
-                      src={settings.logoUrl}
-                      alt="Logo"
-                      className="h-8 w-auto max-w-[120px] object-contain"
-                      onError={() => setLogoError(true)}
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                      <LayoutDashboard className="text-white" size={18} />
-                    </div>
-                  )}
-                  {(!settings.logoUrl || logoError) && <span className="font-bold text-lg tracking-tight text-white">Vontta</span>}
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-4 border-b border-slate-800 bg-navy-800/30">
-                <div className="flex items-center gap-3 mb-3">
-                  <img src={currentUser.avatar} className="w-10 h-10 rounded-full border border-slate-600 object-cover" alt="me" />
-                  <div className="overflow-hidden">
-                    <p className="text-sm font-medium text-white truncate">{currentUser.name}</p>
-                    <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>
+          ) : (
+            <>
+              {!demo && entries.length === 0 && view === 'overview' && (
+                <div className="onboarding-banner">
+                  <div>
+                    <h2>Seu espaço está pronto para começar.</h2>
+                    <p>Traga os registros da versão anterior ou cadastre sua primeira entrega.</p>
                   </div>
+                  <button className="button secondary" onClick={() => setImportOpen(true)}>
+                    Importar meus registros
+                    <ArrowRight size={16} />
+                  </button>
                 </div>
-              </div>
-
-              <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <button
-                  onClick={() => { setCurrentView('dashboard'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'dashboard' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <LayoutDashboard size={20} />
-                  <span>Dashboard</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('activities'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'activities' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <ListTodo size={20} />
-                  <span>Atividades</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('planning'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'planning' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <CalendarDays size={20} />
-                  <span>Planejamento</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('board'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'board' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <Kanban size={20} />
-                  <span>Quadro</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('chat'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'chat' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <MessageSquare size={20} />
-                  <span>Chat IA</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('history'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'history' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <History size={20} />
-                  <span>Histórico</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('financial'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'financial' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <DollarSign size={20} />
-                  <span>Financeiro</span>
-                </button>
-
-                <div className="my-4 border-t border-slate-800"></div>
-
-                <button
-                  onClick={() => { setCurrentView('profile'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'profile' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <Settings size={20} />
-                  <span>Perfil</span>
-                </button>
-
-                <button
-                  onClick={() => { setCurrentView('settings'); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg border font-medium transition-all ${currentView === 'settings' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'}`}
-                >
-                  <FolderOpen size={20} />
-                  <span>Cadastros</span>
-                </button>
-
-                <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors mt-auto">
-                  <LogOut size={20} />
-                  <span>Sair do sistema</span>
-                </button>
-              </nav>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <TaskModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        taskToEdit={editingTask}
-        initialData={duplicatingTask}
-        projects={projects}
-        sectors={sectors}
-        users={users}
-      />
-    </div >
+              )}
+              {view === 'overview' && <Overview {...props} />}
+              {view === 'planner' && <Planner {...props} />}
+              {view === 'content' && <ContentStudio {...props} />}
+              {view === 'posts' && (
+                <Suspense fallback={<p>Carregando criador de posts…</p>}>
+                  <PostCreator key={demo ? 'demo' : user?.id} demo={demo} />
+                </Suspense>
+              )}
+              {view === 'projects' && <Projects {...props} />}
+              {view === 'clients' && <Clients {...props} />}
+              {view === 'finance' && (
+                <Finance
+                  {...props}
+                  demo={demo}
+                  onRefresh={async () => {
+                    if (!user || demo) return;
+                    const gen = generation.current;
+                    const data = await fetchEntries(user.id);
+                    if (gen === generation.current) {
+                      setEntries(data);
+                      setLoadError('');
+                    }
+                  }}
+                />
+              )}
+              {view === 'settings' && (
+                <Settings
+                  entries={entries}
+                  edit={setEditing}
+                  demo={demo}
+                  onImport={() => setImportOpen(true)}
+                  onLogout={() => void logout()}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
+      <nav className="mobile-bottom-nav" aria-label="Navegação mobile">
+        {[
+          { view: 'overview', label: 'Início', icon: LayoutDashboard },
+          { view: 'planner', label: 'Agenda', icon: CalendarDays },
+          { view: 'content', label: 'Conteúdo', icon: Video },
+          { view: 'projects', label: 'Projetos', icon: FolderKanban },
+          { view: 'finance', label: 'Finanças', icon: Wallet },
+        ].map(({ view: next, label, icon: Icon }) => (
+          <button
+            aria-current={view === next ? 'page' : undefined}
+            className={view === next ? 'active' : ''}
+            key={next}
+            onClick={() => navigate(next as View)}
+          >
+            <Icon size={20} />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+      {menu && (
+        <div
+          className="mobile-menu-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setMenu(false);
+          }}
+        >
+          <aside className="mobile-drawer">
+            <div className="section-heading">
+              <Brand />
+              <IconButton label="Fechar menu" onClick={() => setMenu(false)}>
+                <X size={20} />
+              </IconButton>
+            </div>
+            <nav>
+              {renderNavigation()}
+              <button className="nav-item" onClick={() => navigate('settings')}>
+                <Settings2 size={19} />
+                Preferências
+              </button>
+            </nav>
+            <button
+              className="button secondary"
+              onClick={() => {
+                setMenu(false);
+                setAI({ action: 'ideas' });
+              }}
+            >
+              <Sparkles size={17} />
+              Conversar com a IA
+            </button>
+          </aside>
+        </div>
+      )}
+      {editing && (
+        <EntryEditor
+          key={editing.id}
+          initial={editing}
+          entries={entries}
+          onSave={save}
+          onDelete={remove}
+          onClose={() => setEditing(null)}
+          onAI={(action, content) => {
+            setEditing(null);
+            setAI({ action, content });
+          }}
+        />
+      )}
+      {ai && (
+        <AssistantPanel
+          request={ai}
+          entries={entries}
+          demo={demo}
+          onClose={() => {
+            if (ai.content)
+              setEditing(entries.find((entry) => entry.id === ai.content?.id) || ai.content);
+            setAI(null);
+          }}
+          onSave={save}
+        />
+      )}
+      {recording && (
+        <RecordingMode
+          content={recording}
+          onClose={() => setRecording(null)}
+          onRecorded={() => save({ ...recording, status: 'Editar' })}
+        />
+      )}
+      {quick && (
+        <Modal title="O que vamos colocar em movimento?" onClose={() => setQuick(false)}>
+          <div className="quick-grid">
+            {[
+              {
+                kind: 'task',
+                label: 'Atividade',
+                desc: 'Um próximo passo na sua agenda',
+                icon: CalendarDays,
+              },
+              {
+                kind: 'content',
+                label: 'Ideia de conteúdo',
+                desc: 'Capture antes que ela passe',
+                icon: Video,
+              },
+              {
+                kind: 'project',
+                label: 'Projeto',
+                desc: 'Organize uma nova entrega',
+                icon: FolderKanban,
+              },
+              {
+                kind: 'transaction',
+                label: 'Lançamento',
+                desc: 'Uma receita ou despesa',
+                icon: Wallet,
+              },
+              {
+                kind: 'client',
+                label: 'Cliente',
+                desc: 'Uma nova relação de negócio',
+                icon: Users,
+              },
+            ].map(({ kind, label, desc, icon: Icon }) => (
+              <button
+                key={kind}
+                onClick={() => {
+                  setQuick(false);
+                  setEditing(newEntry(kind as Kind));
+                }}
+              >
+                <Icon size={21} />
+                <strong>{label}</strong>
+                <span>{desc}</span>
+                <ArrowUpRight size={16} />
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
+      {searchOpen && (
+        <Modal title="Encontre no seu espaço" onClose={() => setSearchOpen(false)}>
+          <label className="search-input global-search-field">
+            <Search size={18} />
+            <input
+              autoFocus
+              aria-label="Busca global"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Atividades, clientes, projetos, conteúdo…"
+            />
+          </label>
+          <div className="search-results">
+            {query.length < 2 ? (
+              <p className="muted">Digite pelo menos 2 letras para buscar.</p>
+            ) : (
+              entries
+                .filter(
+                  (e) =>
+                    e.kind !== 'preferences' &&
+                    e.title.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+                )
+                .slice(0, 20)
+                .map((e) => (
+                  <button
+                    key={e.id}
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setEditing(e);
+                    }}
+                  >
+                    <span>
+                      <small>
+                        {
+                          {
+                            task: 'ATIVIDADE',
+                            content: 'CONTEÚDO',
+                            project: 'PROJETO',
+                            client: 'CLIENTE',
+                            transaction: 'FINANCEIRO',
+                            preferences: '',
+                          }[e.kind]
+                        }
+                      </small>
+                      <strong>{e.title}</strong>
+                    </span>
+                    <ArrowUpRight size={16} />
+                  </button>
+                ))
+            )}
+            {query.length >= 2 &&
+              !entries.some((e) => e.title.toLowerCase().includes(query.toLowerCase())) && (
+                <p className="muted">Nenhum resultado. Tente outra palavra.</p>
+              )}
+          </div>
+        </Modal>
+      )}
+      {importOpen && (
+        <Modal title="Traga seu histórico para perto" onClose={() => setImportOpen(false)}>
+          <div className="import-description">
+            <p>
+              Importe projetos, atividades e custos/receitas da versão anterior. Os registros
+              originais são preservados. Registros com o mesmo identificador não são duplicados.
+            </p>
+            <p>
+              O financeiro anterior não registra pagamentos por mês. Por isso, os valores ativos
+              entram como pendentes no mês atual. Revise datas, parcelas e situações após importar.
+            </p>
+            <p>
+              Os dados colaborativos de projetos e atividades acessíveis à sua conta serão copiados
+              para este espaço pessoal. O quadro, o chat e os fechamentos semanais continuam
+              disponíveis na versão anterior.
+            </p>
+            <div className="dialog-actions">
+              <button
+                className="button secondary"
+                onClick={() => {
+                  setImportOpen(false);
+                  setLegacy(true);
+                }}
+              >
+                Ver versão anterior
+              </button>
+              <button disabled={importBusy} className="button primary" onClick={importLegacy}>
+                {importBusy ? <Loader2 className="spin" size={16} /> : <ArrowRight size={16} />}
+                Importar registros
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {toast && (
+        <div className="toast" role="status">
+          <span>{toast}</span>
+          <IconButton label="Fechar aviso" onClick={() => setToast('')}>
+            <X size={15} />
+          </IconButton>
+        </div>
+      )}
+    </div>
+  );
+}
+function MoreDots() {
+  return (
+    <span aria-hidden="true" className="more-dots">
+      ···
+    </span>
   );
 }

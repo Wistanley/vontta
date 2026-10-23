@@ -36,7 +36,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, projects, use
         }
     };
 
-    const handleExport = (week: WeeklyHistory) => {
+    const handleExport = async (week: WeeklyHistory) => {
+        const {default:XLSX} = await import('xlsx-js-style');
         // 1. Prepare Data for Tasks Sheet
         const tasksData = week.tasks.map(t => ({
             Projeto: getProjectName(t.projectId),

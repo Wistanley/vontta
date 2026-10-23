@@ -1,0 +1,206 @@
+/* Tamanhos de leitura e áreas de toque independem da densidade dos cards. */
+.nav-item {
+  font-size: 12px;
+}
+.sidebar nav {
+  overflow-y: auto;
+}
+.task-check {
+  position: relative;
+}
+.task-check::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+.status-toggle {
+  min-height: 40px;
+}
+.sidebar {
+  overflow-y: auto;
+}
+.workspace-main {
+  min-width: 0;
+}
+.main-shell {
+  min-width: 0;
+}
+.field input[type='checkbox'] {
+  min-height: 17px;
+}
+@media (max-width: 700px) {
+  .page-heading p {
+    font-size: 12px;
+  }
+  .stat-top {
+    font-size: 11px;
+  }
+  .stat-bottom {
+    font-size: 10px;
+  }
+  .section-heading h2 {
+    font-size: 14px;
+  }
+  .task-info > span {
+    font-size: 13px;
+  }
+  .task-info small {
+    font-size: 10px;
+  }
+  .task-row time {
+    font-size: 11px;
+  }
+  .task-row {
+    min-height: 78px;
+  }
+  .task-check {
+    margin: 0 4px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+  }
+  .panel-add {
+    font-size: 11px;
+    min-height: 46px;
+  }
+  .section-heading > .text-button {
+    font-size: 10px;
+    min-height: 30px;
+  }
+  .day-strip > div > span {
+    font-size: 10px;
+  }
+  .day-strip .pill {
+    font-size: 9px;
+  }
+  .mini-project > h3 {
+    font-size: 13px;
+  }
+  .mini-project > small {
+    font-size: 10px;
+  }
+  .mini-project .project-progress-label {
+    font-size: 9px;
+  }
+  .mini-project .project-progress-label > b {
+    font-size: 10px;
+  }
+  .project-deadline {
+    font-size: 9px;
+  }
+  .upcoming-info > strong {
+    font-size: 13px;
+  }
+  .upcoming-info > small {
+    font-size: 10px;
+  }
+  .section-description {
+    font-size: 11px;
+  }
+  .spotlight-copy p {
+    font-size: 12px;
+  }
+  .content-card-main > p {
+    font-size: 11px;
+  }
+  .content-card-bottom {
+    font-size: 11px;
+  }
+  .content-card blockquote {
+    font-size: 12px;
+  }
+  .record-card-button {
+    font-size: 11px;
+    min-height: 44px;
+  }
+  .column-add {
+    min-height: 44px;
+    font-size: 11px;
+  }
+  .column-heading .icon-button {
+    min-width: 35px;
+    min-height: 35px;
+  }
+  .transaction-info strong {
+    font-size: 13px;
+  }
+  .transaction-info small {
+    font-size: 10px;
+  }
+  .transaction-row time {
+    font-size: 11px;
+  }
+  .transaction-row .pill {
+    font-size: 10px;
+  }
+  .transaction-amount {
+    font-size: 14px;
+  }
+  .finance-filters > .segmented {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .finance-filters > .select {
+    width: 100%;
+  }
+  .finance-filters > select {
+    font-size: 12px;
+    min-height: 42px;
+  }
+  .finance-stats .stat-card > small {
+    font-size: 11px;
+  }
+  .finance-stats .balance-card > small {
+    font-size: 10px;
+  }
+  .mobile-bottom-nav > button {
+    font-size: 10px;
+  }
+  .project-stage h3 {
+    font-size: 13px;
+  }
+  .project-stage > span {
+    font-size: 11px;
+  }
+  .documentation {
+    font-size: 13px;
+  }
+  .field > input,
+  .field > select,
+  .field > textarea {
+    font-size: 16px;
+  }
+  .dialog-actions .button {
+    font-size: 12px;
+  }
+  .check-field {
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .pill {
+    font-size: 10px;
+  }
+  .assistant-intro p {
+    font-size: 11px;
+  }
+  .privacy-note {
+    font-size: 11px;
+  }
+  .client-card > p {
+    font-size: 13px;
+  }
+  .client-card-bottom {
+    font-size: 11px;
+  }
+  .profile-definition dt {
+    font-size: 12px;
+  }
+  .profile-definition dd,
+  .settings-body p {
+    font-size: 13px;
+  }
+  .client-summary p,
+  .client-summary a {
+    font-size: 13px;
+  }
+}

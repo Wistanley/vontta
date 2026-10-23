@@ -1,0 +1,197 @@
+{
+  "title": "Quem é o Will? · Piloto visual",
+  "format": "Carrossel",
+  "caption": "Comecei construindo sistemas. Com o tempo, ficou claro que o software é uma parte da solução: o trabalho também precisa fluir entre dados, ferramentas e pessoas.\n\nEste perfil vai mostrar como penso e construo essas conexões, da organização de um processo à aplicação de IA com supervisão.\n\nMeu ponto de partida é o problema da empresa.\n\nQue parte da sua operação mais precisa melhorar?\n\n#DesenvolvimentoDeSoftware #Automacao #InteligenciaArtificial #IntegracaoDeSistemas #TecnologiaParaEmpresas",
+  "slides": [
+    {
+      "heading": "Há mais de 10 anos, eu construo tecnologia.",
+      "body": "Agora, quero falar sobre o que vem depois do software.",
+      "imagePrompt": "Fotografia de código em um monitor de computador.",
+      "photo": {
+        "id": "OqtafYT5kTw",
+        "author": "Ilya Pavlov",
+        "alt": "Fotografia de código em um monitor de computador.",
+        "position": "50% 45%",
+        "source": "https://unsplash.com/photos/OqtafYT5kTw",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-01.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1335
+      },
+      "label": "QUEM É O WILL?",
+      "filename": "slide-01.png"
+    },
+    {
+      "heading": "Comecei desenvolvendo sistemas.",
+      "body": "Transformar um problema em software era o começo do trabalho.",
+      "imagePrompt": "Computadores em uma mesa de trabalho iluminada.",
+      "photo": {
+        "id": "hGV2TfOh0ns",
+        "author": "Domenico Loia",
+        "alt": "Computadores em uma mesa de trabalho iluminada.",
+        "position": "50% 53%",
+        "source": "https://unsplash.com/photos/hGV2TfOh0ns",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-02.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "01 / O PONTO DE PARTIDA",
+      "filename": "slide-02.png"
+    },
+    {
+      "heading": "O software era uma parte do problema.",
+      "body": "O trabalho continuava atravessando ferramentas e pessoas. Cada passagem podia exigir procurar, copiar e conferir informações.",
+      "imagePrompt": "Profissionais trabalhando com computadores em um escritório.",
+      "photo": {
+        "id": "sggw4-qDD54",
+        "author": "Annie Spratt",
+        "alt": "Profissionais trabalhando com computadores em um escritório.",
+        "position": "50% 48%",
+        "source": "https://unsplash.com/photos/sggw4-qDD54",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-03.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1370
+      },
+      "label": "02 / A DESCOBERTA",
+      "filename": "slide-03.png"
+    },
+    {
+      "heading": "O problema estava na operação.",
+      "body": "Para uma tarefa avançar, a informação precisava chegar inteira à próxima etapa.",
+      "imagePrompt": "Pessoas discutindo o trabalho com notebooks e anotações.",
+      "photo": {
+        "id": "5QgIuuBxKwM",
+        "author": "Headway",
+        "alt": "Pessoas discutindo o trabalho com notebooks e anotações.",
+        "position": "50% 57%",
+        "source": "https://unsplash.com/photos/5QgIuuBxKwM",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-04.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "03 / O DIAGNÓSTICO",
+      "filename": "slide-04.png"
+    },
+    {
+      "heading": "Então vieram as integrações.",
+      "body": "Conectar sistemas para que a informação não precisasse ser carregada à mão.",
+      "imagePrompt": "Cabos de rede conectados a equipamentos de infraestrutura.",
+      "photo": {
+        "id": "dyUp7WPu5q4",
+        "author": "Albert Stoynov",
+        "alt": "Cabos de rede conectados a equipamentos de infraestrutura.",
+        "position": "50% 50%",
+        "source": "https://unsplash.com/photos/dyUp7WPu5q4",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-05.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1691435828932-911a7801adfb?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1125
+      },
+      "label": "04 / CONECTAR",
+      "filename": "slide-05.png"
+    },
+    {
+      "heading": "Depois, as automações.",
+      "body": "Etapas repetidas viram fluxos que podem ser acompanhados.",
+      "imagePrompt": "Visitantes observando uma demonstração de automação logística.",
+      "photo": {
+        "id": "4nfPgBofTs4",
+        "author": "Trans Russia",
+        "alt": "Visitantes observando uma demonstração de automação logística.",
+        "position": "50% 55%",
+        "source": "https://unsplash.com/photos/4nfPgBofTs4",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-06.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1761195696590-3490ea770aa1?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "05 / DAR FLUXO",
+      "filename": "slide-06.png"
+    },
+    {
+      "heading": "E agora, os agentes de IA.",
+      "body": "Tarefas com contexto e variação entram na conversa. Com dados adequados, limites e supervisão.",
+      "imagePrompt": "Equipe de programação trabalhando com monitores e notebooks.",
+      "photo": {
+        "id": "QBpZGqEMsKg",
+        "author": "Alex Kotliarskyi",
+        "alt": "Equipe de programação trabalhando com monitores e notebooks.",
+        "position": "50% 48%",
+        "source": "https://unsplash.com/photos/QBpZGqEMsKg",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-07.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "06 / TRABALHAR COM CONTEXTO",
+      "filename": "slide-07.png"
+    },
+    {
+      "heading": "A tecnologia continua sendo o meio.",
+      "body": "O ponto de partida é entender o problema da empresa.",
+      "imagePrompt": "Equipe reunida para trabalhar em torno de um notebook.",
+      "photo": {
+        "id": "QckxruozjRg",
+        "author": "Annie Spratt",
+        "alt": "Equipe reunida para trabalhar em torno de um notebook.",
+        "position": "50% 43%",
+        "source": "https://unsplash.com/photos/QckxruozjRg",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-08.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1334
+      },
+      "label": "07 / A IDEIA CENTRAL",
+      "filename": "slide-08.png"
+    },
+    {
+      "heading": "Problemas reais. Sistemas e operações melhores.",
+      "body": "É nessa conexão que concentro meu trabalho: entender o problema e construir a tecnologia que ajuda a operação a funcionar melhor.",
+      "imagePrompt": "Tela de notebook com gráficos e indicadores de desempenho.",
+      "photo": {
+        "id": "JKUTrJ4vK00",
+        "author": "Luke Chesser",
+        "alt": "Tela de notebook com gráficos e indicadores de desempenho.",
+        "position": "50% 50%",
+        "source": "https://unsplash.com/photos/JKUTrJ4vK00",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-09.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "08 / O MEU TRABALHO",
+      "filename": "slide-09.png"
+    },
+    {
+      "heading": "Que parte da sua operação mais precisa melhorar?",
+      "body": "É sobre isso que vou falar por aqui: sistemas, integrações, automação e IA aplicados ao trabalho real.",
+      "imagePrompt": "Profissionais conversando em uma reunião com notebook.",
+      "photo": {
+        "id": "LRn6do1x6tI",
+        "author": "UK Black Tech",
+        "alt": "Profissionais conversando em uma reunião com notebook.",
+        "position": "50% 52%",
+        "source": "https://unsplash.com/photos/LRn6do1x6tI",
+        "license": "https://unsplash.com/license",
+        "filename": "photo-10.jpg",
+        "imageUrl": "https://images.unsplash.com/photo-1653566031489-78ae0fa0872c?auto=format&fit=max&w=2000&q=90&fm=jpg",
+        "width": 2000,
+        "height": 1333
+      },
+      "label": "BEM-VINDO AO @EUSOUWILL.DEV",
+      "filename": "slide-10.png"
+    }
+  ]
+}

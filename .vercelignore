@@ -1,0 +1,14 @@
+.git
+.vercel
+.claude
+.env
+.env.*
+node_modules
+dist
+artifacts
+output
+test-results
+playwright-report
+tests
+supabase/.temp
+supabase/.branches

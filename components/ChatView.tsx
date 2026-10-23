@@ -19,7 +19,6 @@ export const ChatView: React.FC<Props> = ({ messages, channels, currentUser, use
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isAiConfigured = backend.isGeminiConfigured();
 
   // Initialize selection using props, not backend directly
   useEffect(() => {
@@ -83,23 +82,6 @@ export const ChatView: React.FC<Props> = ({ messages, channels, currentUser, use
     : null;
 
   const isLockedByMe = activeChannel?.lockedByUserId === currentUser.id;
-
-  if (!isAiConfigured) {
-    return (
-      <div className="flex flex-col h-full bg-[#02040a] relative overflow-hidden rounded-xl border border-slate-800 items-center justify-center p-8">
-         <div className="bg-navy-800/50 border border-slate-700 p-8 rounded-2xl max-w-lg text-center shadow-2xl">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/20">
-               <KeyRound className="text-white" size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Ação Necessária na Vercel</h2>
-            <p className="text-slate-400 mb-6">Configuração da API Key necessária para habilitar os chats.</p>
-            <div className="bg-navy-900 border border-slate-800 rounded-lg p-4 text-left mb-6 font-mono text-sm">
-               <code className="text-emerald-400 block break-all">VITE_API_KEY=sua_chave</code>
-            </div>
-         </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-full bg-[#02040a] rounded-xl border border-slate-800 overflow-hidden">

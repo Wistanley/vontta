@@ -1,0 +1,22 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci --no-audit --no-fund --fetch-timeout=30000 --fetch-retries=1 --loglevel=info",
+  "outputDirectory": "dist",
+  "regions": ["gru1"],
+  "functions": {
+    "api/pluggy.ts": { "maxDuration": 300 },
+    "api/post-creator.ts": { "maxDuration": 300 },
+    "api/post-worker.ts": { "maxDuration": 300 }
+  },
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

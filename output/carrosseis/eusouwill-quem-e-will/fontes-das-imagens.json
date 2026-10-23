@@ -1,0 +1,122 @@
+[
+  {
+    "id": "OqtafYT5kTw",
+    "author": "Ilya Pavlov",
+    "alt": "Fotografia de código em um monitor de computador.",
+    "position": "50% 45%",
+    "source": "https://unsplash.com/photos/OqtafYT5kTw",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-01.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1335
+  },
+  {
+    "id": "hGV2TfOh0ns",
+    "author": "Domenico Loia",
+    "alt": "Computadores em uma mesa de trabalho iluminada.",
+    "position": "50% 53%",
+    "source": "https://unsplash.com/photos/hGV2TfOh0ns",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-02.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  },
+  {
+    "id": "sggw4-qDD54",
+    "author": "Annie Spratt",
+    "alt": "Profissionais trabalhando com computadores em um escritório.",
+    "position": "50% 48%",
+    "source": "https://unsplash.com/photos/sggw4-qDD54",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-03.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1370
+  },
+  {
+    "id": "5QgIuuBxKwM",
+    "author": "Headway",
+    "alt": "Pessoas discutindo o trabalho com notebooks e anotações.",
+    "position": "50% 57%",
+    "source": "https://unsplash.com/photos/5QgIuuBxKwM",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-04.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  },
+  {
+    "id": "dyUp7WPu5q4",
+    "author": "Albert Stoynov",
+    "alt": "Cabos de rede conectados a equipamentos de infraestrutura.",
+    "position": "50% 50%",
+    "source": "https://unsplash.com/photos/dyUp7WPu5q4",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-05.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1691435828932-911a7801adfb?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1125
+  },
+  {
+    "id": "4nfPgBofTs4",
+    "author": "Trans Russia",
+    "alt": "Visitantes observando uma demonstração de automação logística.",
+    "position": "50% 55%",
+    "source": "https://unsplash.com/photos/4nfPgBofTs4",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-06.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1761195696590-3490ea770aa1?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  },
+  {
+    "id": "QBpZGqEMsKg",
+    "author": "Alex Kotliarskyi",
+    "alt": "Equipe de programação trabalhando com monitores e notebooks.",
+    "position": "50% 48%",
+    "source": "https://unsplash.com/photos/QBpZGqEMsKg",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-07.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  },
+  {
+    "id": "QckxruozjRg",
+    "author": "Annie Spratt",
+    "alt": "Equipe reunida para trabalhar em torno de um notebook.",
+    "position": "50% 43%",
+    "source": "https://unsplash.com/photos/QckxruozjRg",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-08.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1334
+  },
+  {
+    "id": "JKUTrJ4vK00",
+    "author": "Luke Chesser",
+    "alt": "Tela de notebook com gráficos e indicadores de desempenho.",
+    "position": "50% 50%",
+    "source": "https://unsplash.com/photos/JKUTrJ4vK00",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-09.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  },
+  {
+    "id": "LRn6do1x6tI",
+    "author": "UK Black Tech",
+    "alt": "Profissionais conversando em uma reunião com notebook.",
+    "position": "50% 52%",
+    "source": "https://unsplash.com/photos/LRn6do1x6tI",
+    "license": "https://unsplash.com/license",
+    "filename": "photo-10.jpg",
+    "imageUrl": "https://images.unsplash.com/photo-1653566031489-78ae0fa0872c?auto=format&fit=max&w=2000&q=90&fm=jpg",
+    "width": 2000,
+    "height": 1333
+  }
+]
