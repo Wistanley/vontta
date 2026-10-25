@@ -22,6 +22,7 @@ import {
   profileSchema,
   plannedLabel,
   isPostDue,
+  MAX_POST_BRIEF,
 } from '../lib/post-creator';
 import type { CreatorPost, PostProfile, ProfileSpec, PostSlide } from '../lib/post-creator';
 import { creatorRequest } from '../services/postCreatorClient';
@@ -65,7 +66,7 @@ function Field({
   required?: boolean;
   area?: boolean;
   placeholder?: string;
-  maxLength?: number;
+  maxLength?: number | null;
 }) {
   return (
     <label className="field">
@@ -76,7 +77,7 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           rows={3}
-          maxLength={maxLength}
+          maxLength={maxLength ?? undefined}
           placeholder={placeholder}
         />
       ) : (
@@ -84,7 +85,7 @@ function Field({
           required={required}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          maxLength={maxLength}
+          maxLength={maxLength ?? undefined}
           placeholder={placeholder}
         />
       )}
@@ -216,11 +217,27 @@ function ProfileEditor({
             </select>
           </label>
         </div>
+        <label className="field">
+          <span>Produção das artes</span>
+          <select
+            value={spec.renderMode}
+            onChange={(e) => set('renderMode', e.target.value as ProfileSpec['renderMode'])}
+          >
+            <option value="generated">Arte completa gerada pela OpenAI</option>
+            <option value="editorial">Editorial: Poppins e fotografias reais</option>
+          </select>
+        </label>
+        {spec.renderMode === 'editorial' && (
+          <p className="small muted">
+            Poppins 600/500/400, grafite e verde menta, com fotografias de um acervo curado e
+            créditos registrados. Não gera fotografias sintéticas.
+          </p>
+        )}
         <Field
           label="Modelo de imagem OpenAI"
           value={spec.imageModel}
           onChange={(v) => set('imageModel', v)}
-          required
+          required={spec.renderMode === 'generated'}
           maxLength={150}
           placeholder="Identificador do modelo disponível na sua conta"
         />
@@ -354,8 +371,18 @@ function ProfileEditor({
                 onChange={(v) => update({ brief: v })}
                 required
                 area
+                maxLength={null}
                 placeholder="Ex.: escolha um tema dos pilares do perfil e crie conteúdo educativo com um exemplo prático."
               />
+              <p
+                className="small"
+                role={schedule.brief.length > MAX_POST_BRIEF ? 'alert' : undefined}
+              >
+                {schedule.brief.length} / {MAX_POST_BRIEF} caracteres.{' '}
+                {schedule.brief.length > MAX_POST_BRIEF
+                  ? 'Reduza o texto para salvar. O conteúdo não foi cortado.'
+                  : 'O texto completo será preservado.'}
+              </p>
               <div className="post-actions">
                 <label className="post-check">
                   <input
@@ -508,6 +535,17 @@ function PostDetail({
               <small>TELA {index + 1}</small>
               <h3>{slide.heading}</h3>
               <p>{slide.body}</p>
+              {slide.photo && (
+                <small>
+                  <a href={slide.photo.source} target="_blank" rel="noreferrer">
+                    Foto: {slide.photo.author}
+                  </a>{' '}
+                  ·{' '}
+                  <a href={slide.photo.license} target="_blank" rel="noreferrer">
+                    Licença
+                  </a>
+                </small>
+              )}
             </article>
           ))}
         </div>
@@ -1520,8 +1558,15 @@ export default function PostCreator({ demo }: { demo: boolean }) {
               onChange={setBrief}
               required
               area
+              maxLength={null}
               placeholder="Qual é a ideia? Inclua objetivo, mensagem principal e detalhes que precisam aparecer."
             />
+            <p className="small" role={brief.length > MAX_POST_BRIEF ? 'alert' : undefined}>
+              {brief.length} / {MAX_POST_BRIEF} caracteres.{' '}
+              {brief.length > MAX_POST_BRIEF
+                ? 'Reduza o texto para criar. O conteúdo não foi cortado.'
+                : 'O texto completo será preservado.'}
+            </p>
             <label className="field">
               <span>Iniciar criação em (opcional, fuso do dispositivo)</span>
               <input
@@ -1534,7 +1579,7 @@ export default function PostCreator({ demo }: { demo: boolean }) {
               Post e carrossel: 1080 × 1350. Stories: 1080 × 1920. A produção usa as APIs
               configuradas e pode consumir créditos.
             </p>
-            <button className="button primary" disabled={busy}>
+            <button className="button primary" disabled={busy || brief.length > MAX_POST_BRIEF}>
               Criar rascunho
             </button>
           </form>

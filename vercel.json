@@ -5,17 +5,36 @@
   "outputDirectory": "dist",
   "regions": ["gru1"],
   "functions": {
-    "api/pluggy.ts": { "maxDuration": 300 },
-    "api/post-creator.ts": { "maxDuration": 300 },
-    "api/post-worker.ts": { "maxDuration": 300 }
+    "api/pluggy.ts": {
+      "maxDuration": 300
+    },
+    "api/post-creator.ts": {
+      "maxDuration": 300,
+      "includeFiles": "server/assets/poppins/**"
+    },
+    "api/post-worker.ts": {
+      "maxDuration": 300,
+      "includeFiles": "server/assets/poppins/**"
+    }
   },
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ]

@@ -1,5 +1,19 @@
 # Publicação na Vercel — 18/10/2026
 
+## Composição editorial e correções do criador — 25/10/2026
+
+Deployment `dpl_71oLMTWi5YGgsoA2Pi64teg3QdN9`, https://vontta-31t8xqhex-wills-projects-47c95f14.vercel.app, validado como produção sem domínio e promovido para https://vontta.niinja.com.br. A promoção exigiu indicar explicitamente o time já vinculado na CLI. A primeira versão de staging falhou ao importar JSON no runtime ESM; o catálogo passou a ser um módulo TypeScript e essa versão não foi promovida.
+
+O modo editorial combina fotografias reais do acervo curado com Poppins 600/500/400, usando Satori/SVG e Sharp para PNG exato, sem chamadas de geração de imagem. Fontes e licença são incluídas nas funções; a seleção de fotos registra fotógrafo, origem e licença. Pautas aceitam 30.000 caracteres e mostram excesso sem cortar o texto. Português e Editorial revisam antes das artes; Visual recebe todas as artes e os metadados de procedência. O modo OpenAI permanece disponível para outros perfis.
+
+Validação: typecheck, build, 25 testes de domínio/API e os 11 cenários de navegador, incluindo persistência de pauta longa e bloqueio de excesso sem perda. Dois cenários excederam o tempo inicial; passaram na repetição, e o teste novo passou após usar o locator pelo papel acessível do campo. A API do deployment gerou e armazenou PNG 1080 × 1350 com Poppins e foto real em uma conta temporária, sem chamadas de IA; confirmou metadados e etapa de revisão. Conta, perfil, post e arquivo temporários foram removidos, inclusive o perfil legado exigido pela FK de autenticação.
+
+Perfil @eusouwill.dev atualizado para modo editorial com aprovação humana. A tentativa `652bcc07-85c6-4882-b0da-dc65782fd93e` recebeu versão 2 com oito textos corrigidos, preservando a tentativa anterior em backup e memória do perfil. O briefing originalmente cortado não é recuperável; a nova pauta explicita o objetivo e a direção aprovada com base no roteiro existente. As pautas futuras, datas e credenciais foram preservadas.
+
+A versão 2 concluiu o fluxo real pelo navegador no domínio principal: Português, Editorial e Visual aprovaram, oito artes com fotos reais e Poppins foram persistidas e o estado final é **Aguardando aprovação**. Nenhuma imagem ou legenda foi enviada ao Telegram. A confirmação foi capturada em `artifacts/diagnostics/corrected-carousel/approval-screen.png`.
+
+Relatórios locais ignorados: `artifacts/diagnostics/editorial-stage-check.json`, `artifacts/diagnostics/corrected-carousel/`, `artifacts/deploy/editorial-build.log`.
+
 ## Perfil @eusouwill.dev e calendário da fase 1 — 22/10/2026
 
 Configuração de Will salva no perfil `fef72e17-756f-579f-a8d4-095fbe5fb995`: público B2B, objetivos, tom, prompts, restrições, identidade visual inicial, revisão OpenAI e aprovação humana. O modelo de imagem `gpt-image-2.5-flare` foi confirmado no catálogo da conta sem gerar imagens. Quinze pautas individuais de 26/10 a 27/11/2026, segundas/quartas/sextas às 09:00 de Brasília; primeiros três fixados, cinco Stories manuais e sete roteiros de vídeo no estúdio. Os cinco conteúdos anteriores foram preservados. Três pautas de case/bastidor aguardam evidência real.

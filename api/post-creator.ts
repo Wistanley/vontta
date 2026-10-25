@@ -2,7 +2,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { z } from 'zod';
 import { authenticateRequest, readBody, reply, PublicError } from '../server/http.js';
 import { encryptKey } from '../server/ai-settings.js';
-import { profileSchema, postFormat, newPost, allReviewsPassed } from '../lib/post-creator.js';
+import {
+  profileSchema,
+  postFormat,
+  newPost,
+  allReviewsPassed,
+  MAX_POST_BRIEF,
+} from '../lib/post-creator.js';
 import {
   checkDB,
   getProfile,
@@ -20,7 +26,7 @@ const actionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('create'),
     profileId: idSchema,
-    brief: z.string().trim().min(1).max(4000),
+    brief: z.string().trim().min(1).max(MAX_POST_BRIEF),
     format: postFormat,
     slides: z.number().int().min(1).max(10),
     scheduledFor: z.iso.datetime().optional(),
@@ -267,7 +273,7 @@ export default async function handler(
           format: post.data.format,
           slideCount: post.data.slideCount,
           version: post.data.version + 1,
-          stage: input.action === 'edit' ? 'images' : 'text',
+          stage: input.action === 'edit' ? 'text_review' : 'text',
           slides: input.action === 'edit' ? input.slides : [],
           title: post.data.title,
           caption: input.action === 'edit' ? input.caption : undefined,

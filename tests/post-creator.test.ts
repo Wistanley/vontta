@@ -266,6 +266,14 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
     throw new Error(`Unexpected external request: ${new URL(url).hostname}`);
   }) as typeof fetch;
   try {
+    const rejected = fixture();
+    await processPost(rejected.db, rejected.owner, rejected.post.id);
+    rejectReview = true;
+    const rejectedText = await processPost(rejected.db, rejected.owner, rejected.post.id);
+    assert.equal(rejectedText.status, 'changes');
+    assert.equal(rejectedText.data.reviews[0].reviewer, 'Português');
+    assert.equal(rejected.store.files.size, 0);
+    rejectReview = false;
     const { store, db, owner, post } = fixture();
     store.tables.post_feedback.push({
       owner_id: owner,
@@ -273,8 +281,14 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
       instruction: 'Use frases curtas.',
     });
     let result = await processPost(db, owner, post.id);
-    assert.equal(result.data.stage, 'images');
+    assert.equal(result.data.stage, 'text_review');
     assert(lastPrompt.includes('Use frases curtas.'));
+    result = await processPost(db, owner, post.id);
+    assert.equal(result.data.reviews[0].reviewer, 'Português');
+    assert.equal(store.files.size, 0);
+    result = await processPost(db, owner, post.id);
+    assert.equal(result.data.stage, 'images');
+    assert.equal(store.files.size, 0);
     result = await processPost(db, owner, post.id);
     assert.equal(result.data.slides.filter((s) => s.asset).length, 1);
     rejectImage = true;
@@ -300,8 +314,10 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
     assert.equal(messages, 0);
     rejectReview = false;
     store.tables.creator_posts[0].status = 'generating';
-    store.tables.creator_posts[0].data.reviews = [];
-    for (let i = 0; i < 3; i++) result = await processPost(db, owner, post.id);
+    store.tables.creator_posts[0].data.reviews = store.tables.creator_posts[0].data.reviews.filter(
+      (review: any) => review.reviewer !== 'Visual',
+    );
+    result = await processPost(db, owner, post.id);
     assert.equal(result.status, 'awaiting_approval');
     assert.equal(visualReceived, true);
     assert.equal(allReviewsPassed(result), true);

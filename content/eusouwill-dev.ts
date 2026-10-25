@@ -30,6 +30,7 @@ Feed 1080 × 1350 e stories 1080 × 1920. Margens laterais de referência: 72 px
   textProvider: 'auto',
   reviewProvider: 'openai',
   imageProvider: 'openai',
+  renderMode: 'editorial',
   imageModel: 'gpt-image-2.5-flare',
   approval: 'human',
   enabled: true,

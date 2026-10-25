@@ -1,4 +1,40 @@
 import { test, expect } from '@playwright/test';
+
+test('briefing longo fica completo; excesso é informado sem cortar e modo editorial persiste', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Explorar demonstração' }).click();
+  await page.evaluate(() => {
+    location.hash = 'posts';
+  });
+  await page.getByRole('button', { name: 'Novo perfil', exact: true }).click();
+  await page.getByLabel('Nome do perfil', { exact: true }).fill('Will editorial');
+  await page.getByLabel('@ do perfil').fill('@eusouwill.dev');
+  await page.getByLabel('Público e nicho').fill('Gestores');
+  await page.getByLabel('Produção das artes').selectOption('editorial');
+  await page.getByLabel('Modelo de imagem OpenAI').fill('modelo');
+  await page.getByRole('button', { name: 'Salvar perfil', exact: true }).click();
+  await page.getByRole('button', { name: 'Nova publicação', exact: true }).click();
+  const field = page.getByRole('textbox', {
+    name: 'Pauta e instruções da publicação',
+    exact: true,
+  });
+  const over = 'a'.repeat(30001);
+  await field.fill(over);
+  await expect(field).toHaveValue(over);
+  await expect(page.getByRole('button', { name: 'Criar rascunho' })).toBeDisabled();
+  await expect(page.getByRole('alert')).toContainText('O conteúdo não foi cortado');
+  const brief = 'Uma pauta completa. '.repeat(360) + 'FIM ORIGINAL';
+  await field.fill(brief);
+  await page.getByRole('button', { name: 'Criar rascunho' }).click();
+  await expect(page.getByRole('dialog')).toContainText('FIM ORIGINAL');
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('vontta-post-creator-demo-v1')!),
+  );
+  expect(saved.posts[0].data.brief).toBe(brief);
+  expect(saved.profiles[0].spec.renderMode).toBe('editorial');
+});
 test('perfis, agendas, rascunhos e memória persistem; demo não chama APIs e cabe no mobile', async ({
   page,
 }) => {

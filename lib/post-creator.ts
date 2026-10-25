@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const postFormat = z.enum(['Post', 'Carrossel', 'Stories']);
+export const MAX_POST_BRIEF = 30000;
 export const reviewerNames = ['Português', 'Editorial', 'Visual'] as const;
 export const scheduleSchema = z.object({
   id: z.string().uuid(),
@@ -20,26 +21,36 @@ export const scheduleSchema = z.object({
     }, 'Fuso horário inválido'),
   format: postFormat,
   slides: z.number().int().min(1).max(10),
-  brief: z.string().trim().min(1).max(4000),
+  brief: z.string().trim().min(1).max(MAX_POST_BRIEF),
 });
-export const profileSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  handle: z.string().trim().max(100),
-  audience: z.string().trim().min(1).max(2000),
-  voice: z.string().trim().min(1).max(2000),
-  goals: z.string().max(2000),
-  preferences: z.string().max(4000),
-  textPrompt: z.string().max(6000),
-  imagePrompt: z.string().max(6000),
-  reviewPrompt: z.string().max(4000),
-  textProvider: z.enum(['auto', 'openai', 'anthropic', 'google']),
-  reviewProvider: z.enum(['auto', 'openai', 'anthropic', 'google']),
-  imageProvider: z.literal('openai'),
-  imageModel: z.string().trim().min(1).max(150),
-  approval: z.enum(['human', 'automatic']),
-  enabled: z.boolean(),
-  schedules: z.array(scheduleSchema).max(10),
-});
+export const profileSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    handle: z.string().trim().max(100),
+    audience: z.string().trim().min(1).max(2000),
+    voice: z.string().trim().min(1).max(2000),
+    goals: z.string().max(2000),
+    preferences: z.string().max(4000),
+    textPrompt: z.string().max(6000),
+    imagePrompt: z.string().max(6000),
+    reviewPrompt: z.string().max(4000),
+    textProvider: z.enum(['auto', 'openai', 'anthropic', 'google']),
+    reviewProvider: z.enum(['auto', 'openai', 'anthropic', 'google']),
+    imageProvider: z.literal('openai'),
+    renderMode: z.enum(['generated', 'editorial']).default('generated'),
+    imageModel: z.string().trim().max(150),
+    approval: z.enum(['human', 'automatic']),
+    enabled: z.boolean(),
+    schedules: z.array(scheduleSchema).max(10),
+  })
+  .superRefine((spec, ctx) => {
+    if (spec.renderMode === 'generated' && !spec.imageModel)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['imageModel'],
+        message: 'Informe o modelo de imagem para o modo OpenAI.',
+      });
+  });
 export type ProfileSpec = z.infer<typeof profileSchema>;
 export type PostProfile = { id: string; spec: ProfileSpec; created_at: string };
 export type PostSlide = {
@@ -48,6 +59,14 @@ export type PostSlide = {
   imagePrompt: string;
   asset?: string;
   url?: string;
+  photo?: { id: string; author: string; source: string; license: string; alt: string };
+  layout?: {
+    font: string;
+    headingWeight: number;
+    bodyWeight: number;
+    headingSize: number;
+    bodySize: number;
+  };
 };
 export type PostReview = {
   reviewer: (typeof reviewerNames)[number];
@@ -78,7 +97,7 @@ export interface CreatorPost {
     caption?: string;
     slides: PostSlide[];
     reviews: PostReview[];
-    stage: 'text' | 'images' | 'review' | 'done';
+    stage: 'text' | 'text_review' | 'images' | 'review' | 'done';
     error?: string;
     version: number;
     scheduledFor?: string;
@@ -121,6 +140,7 @@ export const defaultProfile = (): ProfileSpec => ({
   textProvider: 'auto',
   reviewProvider: 'auto',
   imageProvider: 'openai',
+  renderMode: 'generated',
   imageModel: '',
   approval: 'human',
   enabled: true,

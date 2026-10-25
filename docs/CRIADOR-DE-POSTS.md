@@ -81,3 +81,11 @@ O ciclo inicial do perfil de Will está documentado em [eusouwill-dev-fase-1.md]
 Esses testes não substituem a aplicação da migração e a validação com banco, provedores e bot reais no ambiente de destino.
 
 Na instalação atual, também foi concluída uma verificação com **Supabase real** e duas contas temporárias, usando respostas OpenAI e Telegram simuladas: arquivos privados, criptografia, RLS entre contas, geração por etapas, revisão visual, memória, aprovação por perfil e recuperação de entrega incerta. O navegador no domínio público confirmou cadastro/edição e persistência de perfil, fila, autenticação e responsividade. Contas e arquivos temporários foram removidos. Relatórios ignorados pelo Git: `artifacts/diagnostics/post-creator-database.json`, `post-creator-stage.json` e `post-creator-public.json`. Não foram consumidos créditos de provedores nem enviadas mensagens a um bot real.
+
+## Correções de geração — 24/10/2026
+
+- Pautas individuais e recorrentes aceitam até **30.000 caracteres**. O formulário conserva o texto colado mesmo acima do limite, exibe contagem e bloqueia salvar até a correção. A API valida o mesmo limite; não há truncamento silencioso. Textos já cortados pela versão anterior precisam ser reconstituídos ou reenviados: os trechos perdidos não podem ser recuperados do banco.
+- O modo de produção fica no perfil. **Editorial** usa Poppins 600/500/400 e fotos do acervo curado, com arquivos de fonte incluídos nas funções e PNGs de exatamente 1080 × 1350 ou 1080 × 1920. Não utiliza a API de geração de imagem. **OpenAI** mantém a geração completa para os demais perfis.
+- Fluxo: roteiro → Português → Editorial → artes → Visual → aprovação configurada → Telegram. Roteiros previamente preparados na etapa de imagens também passam pela revisão de texto antes da produção.
+- Português recebe apenas os textos finais e a voz. Editorial recebe as referências do perfil, mas avalia conteúdo. Visual recebe todas as artes e os registros de origem das fotos. A ausência de imagens não reprova as etapas anteriores à produção. Notas de revisão aceitam até 8.000 caracteres.
+- Uma reprovação continua bloqueando o fluxo. A correção de texto reinicia as revisões e gera outra versão; artes anteriores permanecem nos caminhos da versão anterior. Aprovação humana e entrega não são dispensadas pelas correções.

@@ -37,6 +37,7 @@ const appendStyle = (text: string, instruction: string) =>
   `${text.split(marker)[0]}${marker}${instruction}`;
 const next = profileSchema.parse({
   ...current,
+  renderMode: 'editorial',
   imagePrompt: willProfile.imagePrompt,
   preferences: appendStyle(current.preferences, willVisualStyle),
   reviewPrompt: appendStyle(
