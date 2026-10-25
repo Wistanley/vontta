@@ -28,6 +28,7 @@ import type { CreatorPost, PostProfile, ProfileSpec, PostSlide } from '../lib/po
 import { creatorRequest } from '../services/postCreatorClient';
 import type { CreatorState } from '../services/postCreatorClient';
 import './post-creator.css';
+const ContentRadar = React.lazy(() => import('./ContentRadar'));
 
 const demoKey = 'vontta-post-creator-demo-v1';
 const emptyState = (): CreatorState => ({
@@ -806,7 +807,9 @@ function PostDetail({
 
 export default function PostCreator({ demo }: { demo: boolean }) {
   const [state, setState] = useState<CreatorState>(emptyState);
-  const [tab, setTab] = useState<'posts' | 'profiles' | 'schedules' | 'connections'>('posts');
+  const [tab, setTab] = useState<'posts' | 'profiles' | 'schedules' | 'connections' | 'radar'>(
+    'posts',
+  );
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
@@ -1073,6 +1076,7 @@ export default function PostCreator({ demo }: { demo: boolean }) {
           {(
             [
               { id: 'posts', name: 'Publicações', icon: Image },
+              { id: 'radar', name: 'Radar', icon: Sparkles },
               { id: 'profiles', name: 'Perfis', icon: Users },
               { id: 'schedules', name: 'Agendas', icon: CalendarDays },
               { id: 'connections', name: 'Conexões', icon: Settings2 },
@@ -1128,6 +1132,18 @@ export default function PostCreator({ demo }: { demo: boolean }) {
               Você está na demonstração. Experimente perfis, agendas e rascunhos; as APIs e o
               Telegram funcionam na conta conectada.
             </p>
+          )}
+          {tab === 'radar' && (
+            <React.Suspense fallback={<p>Carregando seu Radar…</p>}>
+              <ContentRadar
+                profiles={state.profiles}
+                demo={demo}
+                onCarousel={() => {
+                  setTab('posts');
+                  void load();
+                }}
+              />
+            </React.Suspense>
           )}
           {tab === 'posts' && (
             <>

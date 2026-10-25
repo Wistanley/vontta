@@ -1,0 +1,27 @@
+services:
+  vontta-radar:
+    build:
+      context: ..
+      dockerfile: worker/Dockerfile.radar
+    container_name: vontta-radar
+    restart: unless-stopped
+    env_file: .env.radar
+    mem_limit: 1g
+    cpus: 1.5
+    read_only: true
+    tmpfs:
+      - /tmp/radar:size=256m,uid=1000,gid=1000,mode=0700
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    ports:
+      - '127.0.0.1:8795:8795'
+    networks: [radar]
+networks:
+  radar:
+    name: vontta-radar

@@ -3,6 +3,7 @@ dist/
 .env
 .env.*
 !.env.example
+!worker/.env.radar.example
 test-results/
 playwright-report/
 artifacts/

@@ -1,0 +1,99 @@
+{
+  "id": "vonttaRadarrank",
+  "name": "Vontta Radar · 02 · Classificação dos destaques",
+  "active": false,
+  "nodes": [
+    {
+      "id": "rank-trigger",
+      "name": "Agenda",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "15 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rank-internal",
+      "name": "Chamada interna",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "rank-request",
+      "name": "Radar protegido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://vontta-radar:8795/internal/radar",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"action\":\"rank\"}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vonttaRadarInternal",
+          "name": "Vontta Radar · Worker"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Agenda": {
+      "main": [
+        [
+          {
+            "node": "Radar protegido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamada interna": {
+      "main": [
+        [
+          {
+            "node": "Radar protegido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": []
+}

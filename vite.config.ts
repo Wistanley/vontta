@@ -29,6 +29,10 @@ export default defineConfig(({ mode }) => {
       {
         name: 'vontta-local-api',
         configureServer(server) {
+          server.middlewares.use('/api/radar', async (req, res) => {
+            const { default: handler } = await import('./api/radar');
+            await handler(req, res);
+          });
           server.middlewares.use('/api/post-creator', async (req, res) => {
             const { default: handler } = await import('./api/post-creator');
             await handler(req, res);

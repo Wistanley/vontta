@@ -1,0 +1,99 @@
+{
+  "id": "vonttaRadarscripts",
+  "name": "Vontta Radar · 04 · Fila de roteiros",
+  "active": false,
+  "nodes": [
+    {
+      "id": "scripts-trigger",
+      "name": "Agenda",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1,3,5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "scripts-internal",
+      "name": "Chamada interna",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "scripts-request",
+      "name": "Radar protegido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://vontta-radar:8795/internal/radar",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"action\":\"scripts\"}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vonttaRadarInternal",
+          "name": "Vontta Radar · Worker"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Agenda": {
+      "main": [
+        [
+          {
+            "node": "Radar protegido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamada interna": {
+      "main": [
+        [
+          {
+            "node": "Radar protegido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all"
+  },
+  "tags": []
+}

@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/domain.test.ts tests/assistant.test.ts tests/ai-settings.test.ts tests/pluggy.test.ts tests/post-creator.test.ts tests/editorial-renderer.test.ts",
+    "test": "tsx --test tests/domain.test.ts tests/assistant.test.ts tests/ai-settings.test.ts tests/pluggy.test.ts tests/post-creator.test.ts tests/editorial-renderer.test.ts tests/radar.test.ts",
     "test:e2e": "playwright test",
     "carousel:prepare": "node scripts/prepare-carousel-photos.mjs",
     "carousel:render": "node scripts/create-carousel-pilot.mjs",
