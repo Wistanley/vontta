@@ -13,6 +13,9 @@ test('briefing longo fica completo; excesso é informado sem cortar e modo edito
   await page.getByLabel('@ do perfil').fill('@eusouwill.dev');
   await page.getByLabel('Público e nicho').fill('Gestores');
   await page.getByLabel('Produção das artes').selectOption('editorial');
+  await page.getByLabel('Nome nas artes', { exact: true }).fill('Lenvix');
+  await page.getByLabel('Assinatura da marca', { exact: true }).fill('CONECTE. ATENDA. CRESÇA.');
+  await page.getByLabel('Paleta editorial', { exact: true }).selectOption('indigo');
   await page.getByLabel('Modelo de imagem OpenAI').fill('modelo');
   await page.getByRole('button', { name: 'Salvar perfil', exact: true }).click();
   await page.getByRole('button', { name: 'Nova publicação', exact: true }).click();
@@ -34,6 +37,11 @@ test('briefing longo fica completo; excesso é informado sem cortar e modo edito
   );
   expect(saved.posts[0].data.brief).toBe(brief);
   expect(saved.profiles[0].spec.renderMode).toBe('editorial');
+  expect(saved.profiles[0].spec.editorialIdentity).toEqual({
+    name: 'Lenvix',
+    tagline: 'CONECTE. ATENDA. CRESÇA.',
+    palette: 'indigo',
+  });
 });
 test('perfis, agendas, rascunhos e memória persistem; demo não chama APIs e cabe no mobile', async ({
   page,

@@ -4,7 +4,7 @@ import { createElement as h, type CSSProperties, type ReactNode } from 'react';
 import satori from 'satori';
 import sharp from 'sharp';
 import catalog from '../content/editorial-photos.js';
-import type { PostSlide } from '../lib/post-creator.js';
+import type { PostSlide, ProfileSpec } from '../lib/post-creator.js';
 import { PublicError } from './http.js';
 
 const tags = [
@@ -90,6 +90,7 @@ export async function renderEditorial(options: {
   story: boolean;
   usedPhotos?: string[];
   photoBytes?: Buffer;
+  identity?: ProfileSpec['editorialIdentity'];
 }) {
   const { slide, index, total, handle, story } = options;
   const photo = choosePhoto(slide, index, options.usedPhotos || []);
@@ -104,10 +105,39 @@ export async function renderEditorial(options: {
   const contentBottom = height - (story ? 230 : 140);
   const mint = index > 0 && index === Math.floor(total / 2);
   const light = index % 2 === 1;
-  const background = mint ? '#A5E7C2' : light ? '#F3F4F2' : '#101114';
-  const ink = mint || light ? '#17221D' : '#F3F4F2';
-  const accent = mint || light ? '#245E43' : '#A5E7C2';
-  const secondary = mint || light ? '#56645C' : '#B4BFBA';
+  const indigo = options.identity?.palette === 'indigo';
+  const background = indigo
+    ? mint
+      ? '#E4E2FF'
+      : light
+        ? '#F7F8FC'
+        : '#0B1020'
+    : mint
+      ? '#A5E7C2'
+      : light
+        ? '#F3F4F2'
+        : '#101114';
+  const ink = indigo
+    ? mint || light
+      ? '#0B1020'
+      : '#F7F8FC'
+    : mint || light
+      ? '#17221D'
+      : '#F3F4F2';
+  const accent = indigo
+    ? mint || light
+      ? '#4F46E5'
+      : '#B8B2FF'
+    : mint || light
+      ? '#245E43'
+      : '#A5E7C2';
+  const secondary = indigo
+    ? mint || light
+      ? '#475569'
+      : '#CBD5E1'
+    : mint || light
+      ? '#56645C'
+      : '#B4BFBA';
   const image = await sharp(original)
     .resize(936, photoHeight, { fit: 'cover', position: 'attention' })
     .jpeg({ quality: 90 })
@@ -181,10 +211,13 @@ export async function renderEditorial(options: {
           },
           box(
             { gap: 18, alignItems: 'center' },
-            box({ fontSize: 25, fontWeight: 600 }, 'W.'),
+            box({ fontSize: 25, fontWeight: 600 }, options.identity?.name || 'W.'),
             handle,
           ),
-          box({ fontSize: 12, letterSpacing: 2, color: secondary }, 'SOFTWARE · OPERAÇÃO · IA'),
+          box(
+            { fontSize: 12, letterSpacing: 2, color: secondary },
+            options.identity?.tagline ?? 'SOFTWARE · OPERAÇÃO · IA',
+          ),
         ),
         h('img', {
           src: `data:image/jpeg;base64,${image.toString('base64')}`,
@@ -219,7 +252,17 @@ export async function renderEditorial(options: {
             gap: 24,
           },
           box(
-            { width: 836, height: 3, background: light || mint ? '#CFDAD2' : '#34453B' },
+            {
+              width: 836,
+              height: 3,
+              background: indigo
+                ? light || mint
+                  ? '#D8DDF0'
+                  : '#323A55'
+                : light || mint
+                  ? '#CFDAD2'
+                  : '#34453B',
+            },
             box({ width: `${((index + 1) / total) * 100}%`, height: 3, background: accent }),
           ),
           box(

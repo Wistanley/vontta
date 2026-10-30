@@ -317,6 +317,7 @@ export async function processPost(db: SupabaseClient, owner: string, id: string,
               index,
               total: post.data.slideCount,
               handle: profile.spec.handle,
+              identity: profile.spec.editorialIdentity,
               story: post.data.format === 'Stories',
               usedPhotos: post.data.slides.flatMap((s) => (s.photo ? [s.photo.id] : [])),
             });

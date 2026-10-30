@@ -38,6 +38,13 @@ export const profileSchema = z
     reviewProvider: z.enum(['auto', 'openai', 'anthropic', 'google']),
     imageProvider: z.literal('openai'),
     renderMode: z.enum(['generated', 'editorial']).default('generated'),
+    editorialIdentity: z
+      .object({
+        name: z.string().trim().min(1).max(20),
+        tagline: z.string().trim().max(45),
+        palette: z.enum(['mint', 'indigo']),
+      })
+      .optional(),
     imageModel: z.string().trim().max(150),
     approval: z.enum(['human', 'automatic']),
     enabled: z.boolean(),

@@ -105,6 +105,54 @@ test('texto que não cabe é recusado em vez de ser cortado', async () => {
   );
 });
 
+test('identidade editorial aceita marca própria e aplica a paleta em feed e stories', async () => {
+  const identity = {
+    name: 'Lenvix',
+    tagline: 'CONECTE. ATENDA. CRESÇA.',
+    palette: 'indigo' as const,
+  };
+  const spec = profileSchema.parse({
+    ...defaultProfile(),
+    name: 'Lenvix',
+    audience: 'PMEs',
+    renderMode: 'editorial',
+    editorialIdentity: identity,
+  });
+  assert.deepEqual(spec.editorialIdentity, identity);
+  const photoBytes = await sharp({
+    create: { width: 1800, height: 1200, channels: 3, background: '#789785' },
+  })
+    .jpeg()
+    .toBuffer();
+  for (const story of [false, true]) {
+    for (const [index, expected] of [
+      [0, [11, 16, 32]],
+      [1, [247, 248, 252]],
+      [4, [228, 226, 255]],
+    ] as const) {
+      const rendered = await renderEditorial({
+        slide: {
+          heading: 'Seu atendimento com contexto.',
+          body: 'IA e equipe na mesma conversa.',
+          imagePrompt: 'Foto real.',
+        },
+        index,
+        total: 8,
+        handle: '@lenvix.ia',
+        story,
+        photoBytes,
+        identity,
+      });
+      const pixel = await sharp(rendered.png)
+        .extract({ left: 0, top: 500, width: 1, height: 1 })
+        .removeAlpha()
+        .raw()
+        .toBuffer();
+      assert.deepEqual(pixel, Buffer.from(expected));
+    }
+  }
+});
+
 test('revisores têm escopos separados e não exigem imagens antes da produção', () => {
   assert(reviewInstructions('Português').includes('Não reprove pela ausência de imagens'));
   assert(!reviewInstructions('Português').includes('Examine TODAS'));

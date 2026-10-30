@@ -229,10 +229,54 @@ function ProfileEditor({
           </select>
         </label>
         {spec.renderMode === 'editorial' && (
-          <p className="small muted">
-            Poppins 600/500/400, grafite e verde menta, com fotografias de um acervo curado e
-            créditos registrados. Não gera fotografias sintéticas.
-          </p>
+          <>
+            <p className="small muted">
+              Poppins 600/500/400, com fotografias reais de um acervo curado e créditos registrados.
+            </p>
+            <div className="form-grid">
+              <Field
+                label="Nome nas artes"
+                value={spec.editorialIdentity?.name ?? 'W.'}
+                maxLength={20}
+                onChange={(name) =>
+                  set('editorialIdentity', {
+                    name,
+                    tagline: spec.editorialIdentity?.tagline ?? 'SOFTWARE · OPERAÇÃO · IA',
+                    palette: spec.editorialIdentity?.palette ?? 'mint',
+                  })
+                }
+              />
+              <Field
+                label="Assinatura da marca"
+                value={spec.editorialIdentity?.tagline ?? 'SOFTWARE · OPERAÇÃO · IA'}
+                maxLength={45}
+                onChange={(tagline) =>
+                  set('editorialIdentity', {
+                    name: spec.editorialIdentity?.name ?? 'W.',
+                    tagline,
+                    palette: spec.editorialIdentity?.palette ?? 'mint',
+                  })
+                }
+              />
+              <label className="field">
+                <span>Paleta editorial</span>
+                <select
+                  aria-label="Paleta editorial"
+                  value={spec.editorialIdentity?.palette ?? 'mint'}
+                  onChange={(e) =>
+                    set('editorialIdentity', {
+                      name: spec.editorialIdentity?.name ?? 'W.',
+                      tagline: spec.editorialIdentity?.tagline ?? 'SOFTWARE · OPERAÇÃO · IA',
+                      palette: e.target.value as 'mint' | 'indigo',
+                    })
+                  }
+                >
+                  <option value="mint">Grafite e verde menta</option>
+                  <option value="indigo">Azul escuro e índigo</option>
+                </select>
+              </label>
+            </div>
+          </>
         )}
         <Field
           label="Modelo de imagem OpenAI"
