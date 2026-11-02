@@ -36,6 +36,7 @@ test('fotografias têm procedência, não se repetem no carrossel e rejeitam URL
   const first = choosePhoto(slide, 0, []);
   const second = choosePhoto(slide, 1, [first.id]);
   assert.notEqual(first.id, second.id);
+  assert.notEqual(choosePhoto(slide, 0, [], [first.id]).id, first.id);
   assert.equal(first.author, 'Albert Stoynov');
   assert.equal(first.license, 'https://unsplash.com/license');
   await assert.rejects(loadPhoto('http://127.0.0.1/private'), /acervo autorizado/);

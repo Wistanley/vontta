@@ -13,7 +13,7 @@ const tags = [
   'planilha retrabalho duplicidade fragmentada ferramentas contexto',
   'problema processo diagnóstico operação pessoas informação trabalho',
   'integrar integração conectar conexão sistemas dados',
-  'automação automatizar fluxo etapas repetidas regras logística',
+  'financeiro cobrança contrato documento papel conferência faturamento',
   'agente inteligência artificial supervisão equipe desenvolvimento',
   'pessoas empresa tecnologia meio equipe colaboração',
   'gestão indicadores números resultado decisão relatório',
@@ -24,20 +24,27 @@ const normalize = (text: string) =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
-export function choosePhoto(slide: PostSlide, index: number, used: string[]) {
+export function choosePhoto(
+  slide: PostSlide,
+  index: number,
+  used: string[],
+  excluded: string[] = [],
+) {
   const text = normalize(`${slide.heading} ${slide.body}`);
   return (
     catalog
       .map((photo, i) => ({
         photo,
-        score: tags[i]
+        score: (tags[i] || photo.alt)
           .split(' ')
           .reduce((n, tag) => n + (text.includes(normalize(tag)) ? 1 : 0), 0),
         order: (i - index + catalog.length) % catalog.length,
       }))
-      .filter(({ photo }) => !used.includes(photo.id))
+      .filter(({ photo }) => !used.includes(photo.id) && !excluded.includes(photo.id))
       .sort((a, b) => b.score - a.score || a.order - b.order)[0]?.photo ||
-    catalog[index % catalog.length]
+    catalog.filter((p) => !excluded.includes(p.id))[
+      index % Math.max(1, catalog.filter((p) => !excluded.includes(p.id)).length)
+    ]
   );
 }
 
@@ -91,9 +98,16 @@ export async function renderEditorial(options: {
   usedPhotos?: string[];
   photoBytes?: Buffer;
   identity?: ProfileSpec['editorialIdentity'];
+  excludedPhotoIds?: string[];
 }) {
   const { slide, index, total, handle, story } = options;
-  const photo = choosePhoto(slide, index, options.usedPhotos || []);
+  const photo = choosePhoto(slide, index, options.usedPhotos || [], [
+    ...(options.excludedPhotoIds || []),
+    ...(options.identity?.palette === 'indigo'
+      ? ['OqtafYT5kTw', 'dyUp7WPu5q4', 'JKUTrJ4vK00']
+      : []),
+  ]);
+  if (!photo) throw new PublicError(422, 'Não há fotografia compatível disponível no acervo.');
   const original = options.photoBytes || (await loadPhoto(photo.imageUrl));
   const metadata = await sharp(original, { limitInputPixels: 24000000 }).metadata();
   if (!metadata.width || metadata.width < 1080 || !metadata.height || metadata.height < 600)

@@ -89,3 +89,13 @@ Na instalação atual, também foi concluída uma verificação com **Supabase r
 - Fluxo: roteiro → Português → Editorial → artes → Visual → aprovação configurada → Telegram. Roteiros previamente preparados na etapa de imagens também passam pela revisão de texto antes da produção.
 - Português recebe apenas os textos finais e a voz. Editorial recebe as referências do perfil, mas avalia conteúdo. Visual recebe todas as artes e os registros de origem das fotos. A ausência de imagens não reprova as etapas anteriores à produção. Notas de revisão aceitam até 8.000 caracteres.
 - Uma reprovação continua bloqueando o fluxo. A correção de texto reinicia as revisões e gera outra versão; artes anteriores permanecem nos caminhos da versão anterior. Aprovação humana e entrega não são dispensadas pelas correções.
+
+## Recuperação automática — 01/11/2026
+
+Falhas temporárias de produção (incluindo timeout, falha de rede, limites temporários e erros 5xx) preservam a etapa e agendam até quatro retentativas, com intervalos de 1, 5, 15 e 60 minutos. O cron considera o horário salvo, respeita leases, perfil pausado e cota, e alterna a fila por antiguidade. Falta de créditos, chave recusada, permissões ou modelo inválido exigem corrigir a conexão e não geram repetição contínua. A interface mostra a próxima tentativa.
+
+Uma reprovação agenda correção automática em um minuto, com até três tentativas por versão de trabalho. O gerador recebe as observações do revisor e preserva os fatos e o assunto. Não pode criar provas, números ou cases para satisfazer a revisão. A mudança registra snapshot no histórico. Textos alterados voltam às revisões; imagens afetadas são refeitas e passam por revisão visual. Fotos rejeitadas são excluídas das próximas escolhas daquele post. O acervo foi ampliado e a imagem de robô industrial foi substituída por documentos reais.
+
+Ao atingir o limite, a publicação fica com as observações para intervenção; a aprovação final configurada no perfil continua sendo respeitada. Envios ao Telegram sem confirmação continuam exigindo conferência, porque reenviar automaticamente poderia duplicar arquivos.
+
+As chamadas Anthropic dos módulos do Vontta usam explicitamente https://api.anthropic.com/v1. Uma variável ANTHROPIC_BASE_URL herdada do computador não deve redirecionar credenciais pessoais para outro intermediário.

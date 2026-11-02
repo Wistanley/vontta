@@ -154,6 +154,7 @@ export default async function handler(
         ? createOpenAI({ apiKey: connection.key })(connection.model)
         : connection.provider === 'anthropic'
           ? createAnthropic({
+              baseURL: 'https://api.anthropic.com/v1',
               apiKey: connection.key,
               headers: connection.workspaceId
                 ? { 'anthropic-workspace-id': connection.workspaceId }

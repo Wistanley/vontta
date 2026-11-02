@@ -553,6 +553,21 @@ function PostDetail({
             {post.data.error}
           </p>
         )}
+        {post.data.retry?.nextAt && (
+          <p role="status" className="small muted">
+            Nova tentativa automática em{' '}
+            {new Date(post.data.retry.nextAt).toLocaleString('pt-BR', {
+              timeZone: 'America/Sao_Paulo',
+            })}{' '}
+            · Brasília.
+          </p>
+        )}
+        {post.data.autoCorrection?.pending && (
+          <p role="status" className="small muted">
+            Correção automática agendada após a revisão de {post.data.autoCorrection.reviewer}.
+            Tentativa {(post.data.autoCorrection.attempts || 0) + 1} de 3.
+          </p>
+        )}
         {demo && (
           <p className="post-notice">
             Demonstração: cadastros e rascunhos ficam neste navegador. Geração, revisão e Telegram

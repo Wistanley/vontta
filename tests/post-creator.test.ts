@@ -17,6 +17,27 @@ import { encryptKey } from '../server/ai-settings';
 import handler from '../api/post-creator';
 import worker from '../api/post-worker';
 import { willPlan, willProfile } from '../content/eusouwill-dev';
+import { nextRetry, recoveryDue, MAX_CORRECTIONS } from '../lib/post-recovery';
+
+test('retentativas aguardam o prazo, têm limite e não repetem cobrança, credenciais ou entrega incerta', () => {
+  const post = newPost(randomUUID(), 'Tema', 'Post', 1);
+  post.status = 'failed';
+  const now = Date.parse('2026-11-01T12:00:00Z');
+  post.data.retry = nextRetry(0, 502, 'provider_request_failed', now);
+  assert.equal(recoveryDue(post, now), false);
+  assert.equal(recoveryDue(post, now + 60000), true);
+  for (const code of [
+    'provider_billing',
+    'provider_key_invalid',
+    'provider_access_denied',
+    'provider_model_unavailable',
+  ])
+    assert.equal(nextRetry(0, 502, code, now).nextAt, undefined);
+  assert.equal(nextRetry(4, 503, 'stage_failed', now).nextAt, undefined);
+  post.status = 'delivery_unknown';
+  assert.equal(recoveryDue(post, now + 60000), false);
+  assert.equal(MAX_CORRECTIONS, 3);
+});
 
 test('plano do Will contém 15 pautas em cinco semanas, primeiros fixados completos e cases sem evidência bloqueados', () => {
   assert(profileSchema.safeParse(willProfile).success);
@@ -202,6 +223,7 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
     .png()
     .toBuffer();
   let rejectReview = false,
+    transient = false,
     rejectImage = false,
     failDelivery = false,
     messages = 0,
@@ -224,14 +246,18 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
       return Response.json({ created: 0, data: [{ b64_json: png.toString('base64') }] });
     }
     if (url.endsWith('/responses')) {
+      if (transient)
+        return Response.json({ error: { message: 'temporary upstream error' } }, { status: 503 });
       const body = JSON.parse(options.body);
       lastPrompt = options.body;
       const isScript = body.text?.format?.schema?.properties?.slides;
+      const isCorrection = body.text?.format?.schema?.properties?.replaceImages;
       const isVisual = options.body.includes('Examine TODAS');
       if (isVisual) visualReceived = options.body.includes('data:image/png;base64,');
       const output = isScript
         ? {
-            title: 'Processos claros',
+            title: isCorrection ? 'Processos revisados' : 'Processos claros',
+            ...(isCorrection ? { replaceImages: [] } : {}),
             caption: 'Organize uma etapa por vez.',
             slides: [1, 2].map((n) => ({
               heading: `Etapa ${n}`,
@@ -274,6 +300,54 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
     assert.equal(rejectedText.data.reviews[0].reviewer, 'Português');
     assert.equal(rejected.store.files.size, 0);
     rejectReview = false;
+    const recovering = fixture('automatic');
+    transient = true;
+    await assert.rejects(processPost(recovering.db, recovering.owner, recovering.post.id));
+    const failed = recovering.store.tables.creator_posts[0];
+    assert.equal(failed.status, 'failed');
+    assert(failed.data.retry.nextAt);
+    assert.equal(
+      (await processPost(recovering.db, recovering.owner, recovering.post.id)).status,
+      'failed',
+    );
+    failed.data.retry.nextAt = new Date(0).toISOString();
+    transient = false;
+    assert.equal(
+      (await processPost(recovering.db, recovering.owner, recovering.post.id)).data.stage,
+      'text_review',
+    );
+    rejectReview = true;
+    await processPost(recovering.db, recovering.owner, recovering.post.id);
+    const correction = recovering.store.tables.creator_posts[0];
+    assert.equal(correction.data.autoCorrection.pending, true);
+    assert.equal(
+      (await processPost(recovering.db, recovering.owner, recovering.post.id)).status,
+      'changes',
+    );
+    correction.data.autoCorrection.nextAt = new Date(0).toISOString();
+    rejectReview = false;
+    const corrected = await processPost(recovering.db, recovering.owner, recovering.post.id);
+    assert.equal(corrected.status, 'generating');
+    assert.equal(corrected.data.autoCorrection?.attempts, 1);
+    assert.equal(corrected.data.reviews.length, 0);
+    assert.equal(corrected.data.version, 2);
+    for (let i = 0; i < 5; i++)
+      await processPost(recovering.db, recovering.owner, recovering.post.id);
+    assert.equal(recovering.store.tables.creator_posts[0].status, 'approved');
+    const exhausted = recovering.store.tables.creator_posts[0];
+    exhausted.status = 'changes';
+    exhausted.data.autoCorrection = {
+      attempts: MAX_CORRECTIONS,
+      pending: true,
+      nextAt: new Date(0).toISOString(),
+      reviewer: 'Editorial',
+      notes: 'Limite atingido',
+    };
+    assert.equal(
+      (await processPost(recovering.db, recovering.owner, recovering.post.id)).status,
+      'changes',
+    );
+    assert.equal(exhausted.data.autoCorrection.pending, false);
     const { store, db, owner, post } = fixture();
     store.tables.post_feedback.push({
       owner_id: owner,
@@ -314,6 +388,7 @@ test('produção retoma etapas, revisa imagens reais, bloqueia reprovação, res
     assert.equal(messages, 0);
     rejectReview = false;
     store.tables.creator_posts[0].status = 'generating';
+    delete store.tables.creator_posts[0].data.autoCorrection;
     store.tables.creator_posts[0].data.reviews = store.tables.creator_posts[0].data.reviews.filter(
       (review: any) => review.reviewer !== 'Visual',
     );

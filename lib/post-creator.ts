@@ -106,6 +106,15 @@ export interface CreatorPost {
     reviews: PostReview[];
     stage: 'text' | 'text_review' | 'images' | 'review' | 'done';
     error?: string;
+    retry?: { attempts: number; nextAt?: string; code: string };
+    excludedPhotoIds?: string[];
+    autoCorrection?: {
+      attempts: number;
+      pending: boolean;
+      nextAt?: string;
+      reviewer: string;
+      notes: string;
+    };
     version: number;
     scheduledFor?: string;
     materialNeeded?: string;

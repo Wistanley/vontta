@@ -526,6 +526,7 @@ export class RadarProcessor {
         ? createOpenAI({ apiKey: config.key })(modelName)
         : config.provider === 'anthropic'
           ? createAnthropic({
+              baseURL: 'https://api.anthropic.com/v1',
               apiKey: config.key,
               ...(config.workspaceId
                 ? { headers: { 'anthropic-workspace-id': config.workspaceId } }

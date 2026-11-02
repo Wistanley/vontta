@@ -211,6 +211,7 @@ export default async function handler(
             'Esta publicação não possui uma etapa com falha para retomar.',
           );
         post.status = 'generating';
+        delete post.data.retry;
         delete post.data.error;
       } else if (input.action === 'reconcile') {
         if (post.status !== 'delivery_unknown')

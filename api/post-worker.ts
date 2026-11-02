@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { reply, PublicError } from '../server/http.js';
 import { enqueueSchedules, processPost, checkDB } from '../server/post-creator.js';
+import { recoveryDue } from '../lib/post-recovery.js';
 
 export const config = { maxDuration: 300 };
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
@@ -23,10 +24,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         .error,
     );
     const enqueued = await enqueueSchedules(db);
-    const [pending, scheduled] = await Promise.all([
+    const [pending, scheduled, recovery, corrections] = await Promise.all([
       db
         .from('creator_posts')
-        .select('id,owner_id,profile_id,lease_until')
+        .select('id,owner_id,profile_id,lease_until,updated_at')
         .in('status', ['generating', 'approved', 'sending'])
         .order('updated_at')
         .limit(100),
@@ -37,11 +38,34 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         .lte('data->>scheduledFor', new Date().toISOString())
         .order('updated_at')
         .limit(100),
+      db
+        .from('creator_posts')
+        .select('id,owner_id,profile_id,lease_until,updated_at,status,data')
+        .eq('status', 'failed')
+        .lte('data->retry->>nextAt', new Date().toISOString())
+        .order('updated_at')
+        .limit(100),
+      db
+        .from('creator_posts')
+        .select('id,owner_id,profile_id,lease_until,updated_at,status,data')
+        .eq('status', 'changes')
+        .eq('data->autoCorrection->>pending', 'true')
+        .lte('data->autoCorrection->>nextAt', new Date().toISOString())
+        .order('updated_at')
+        .limit(100),
     ]);
     checkDB(pending.error);
     checkDB(scheduled.error);
+    checkDB(recovery.error);
+    checkDB(corrections.error);
     const limitedOwners = new Set<string>();
-    for (const post of [...(pending.data || []), ...(scheduled.data || [])]) {
+    const candidates = [
+      ...(pending.data || []),
+      ...(scheduled.data || []),
+      ...(recovery.data || []).filter((p) => recoveryDue(p)),
+      ...(corrections.data || []).filter((p) => recoveryDue(p)),
+    ].sort((a, b) => a.updated_at.localeCompare(b.updated_at));
+    for (const post of candidates) {
       if (
         limitedOwners.has(post.owner_id) ||
         (post.lease_until && new Date(post.lease_until).getTime() > Date.now())
@@ -78,7 +102,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
               updated_at: new Date().toISOString(),
             })
             .eq('id', post.id);
-        // Failed posts persist the public error and are left for human retry.
+        // processPost persists a bounded retry schedule for transient failures.
         return reply(res, 200, { enqueued, failed: post.id });
       }
     }
